@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
+import { useNavigation } from './_app';
 import { 
   AcademicCapIcon, 
   GlobeAltIcon, 
@@ -11,7 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function Home() {
-  const [isConnected, setIsConnected] = useState(false);
+  const { isWalletConnected, setIsWalletConnected, navigateToLearn, navigateToDashboard, navigateToCommunity, navigateToCreate } = useNavigation();
 
   const features = [
     {
@@ -62,12 +63,16 @@ export default function Home() {
               <AcademicCapIcon className="h-8 w-8 text-primary-600" />
               <span className="ml-2 text-xl font-bold text-gray-900">ScholarForge</span>
             </div>
-                         <div className="flex items-center space-x-4">
-               <button className="text-gray-600 hover:text-gray-900">About</button>
-               <button className="text-gray-600 hover:text-gray-900">Features</button>
-               <button className="text-gray-600 hover:text-gray-900">Dashboard</button>
-               <button className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
-                 {isConnected ? 'Connected' : 'Connect Wallet'}
+                                      <div className="flex items-center space-x-4">
+               <button onClick={navigateToLearn} className="text-gray-600 hover:text-gray-900">Learn</button>
+               <button onClick={navigateToDashboard} className="text-gray-600 hover:text-gray-900">Dashboard</button>
+               <button onClick={navigateToCommunity} className="text-gray-600 hover:text-gray-900">Community</button>
+               <button onClick={navigateToCreate} className="text-gray-600 hover:text-gray-900">Create</button>
+               <button 
+                 onClick={() => setIsWalletConnected(!isWalletConnected)}
+                 className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+               >
+                 {isWalletConnected ? 'Connected' : 'Connect Wallet'}
                </button>
              </div>
           </div>
@@ -102,11 +107,17 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
-              <button className="bg-primary-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors">
+              <button 
+                onClick={navigateToLearn}
+                className="bg-primary-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors"
+              >
                 Start Learning
               </button>
-              <button className="border-2 border-primary-600 text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-50 transition-colors">
-                View Demo
+              <button 
+                onClick={navigateToDashboard}
+                className="border-2 border-primary-600 text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-50 transition-colors"
+              >
+                View Dashboard
               </button>
             </motion.div>
           </div>
@@ -179,7 +190,10 @@ export default function Home() {
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
             Join the movement to make learning accessible, rewarding, and culturally relevant for everyone, everywhere.
           </p>
-          <button className="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors">
+          <button 
+            onClick={navigateToLearn}
+            className="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors"
+          >
             Get Started Today
           </button>
         </div>

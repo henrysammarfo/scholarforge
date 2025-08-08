@@ -165,13 +165,8 @@ export default function Learn() {
 
   const handleTopicSelect = (topic) => {
     setSelectedTopic(topic);
-    const quizData = getQuizData(topic.id, selectedLanguage.code);
-    setCurrentQuiz(quizData);
-    setCurrentQuestion(0);
-    setScore(0);
-    setTimeLeft(30);
-    setQuizCompleted(false);
-    setSelectedAnswer(null);
+    // Navigate to course first, then quiz
+    window.location.href = '/course';
   };
 
   const handleAnswerSelect = (answerIndex) => {
