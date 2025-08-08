@@ -17,6 +17,22 @@ contract XPToken is ERC20, AccessControl, Pausable {
     /// @notice Emitted when XP is minted for a user
     event XPMinted(address indexed to, uint256 amount, string reason);
 
+    /// @notice Emitted when XP is tipped to a creator
+    event XPTipped(address indexed from, address indexed to, uint256 amount, string reason);
+    
+    /**
+     * @notice Tip XP to another user (e.g., quiz creator, translator)
+     * @param to Recipient address
+     * @param amount Amount of XP to tip
+     * @param reason Reason for tipping
+     */
+    function tip(address to, uint256 amount, string calldata reason) external whenNotPaused {
+        require(amount > 0, "Tip amount must be positive");
+        require(balanceOf(msg.sender) >= amount, "Insufficient XP balance");
+        _transfer(msg.sender, to, amount);
+        emit XPTipped(msg.sender, to, amount, reason);
+    }
+
     /**
      * @notice Constructor mints initial supply to deployer and sets up roles
      */
