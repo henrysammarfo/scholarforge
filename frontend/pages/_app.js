@@ -1,7 +1,7 @@
 import '../styles/globals.css'
-import { useState, createContext, useContext } from 'react'
+import { useState, useEffect, createContext, useContext } from 'react'
 import { useRouter } from 'next/router'
-import { WagmiConfig, configureChains, createConfig } from 'wagmi'
+import { WagmiConfig, configureChains, createConfig, useAccount } from 'wagmi'
 import { mainnet, polygon, optimism, arbitrum, base, bsc, avalanche, celo, scroll, zkSync } from 'wagmi/chains'
 import { publicProvider } from 'wagmi/providers/public'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -24,6 +24,18 @@ const { connectors } = getDefaultWallets({ appName: 'ScholarForge', projectId: '
 
 const wagmiConfig = createConfig({ autoConnect: true, connectors, publicClient })
 const queryClient = new QueryClient()
+
+function AppInner({ Component, pageProps, navigationValue, setIsWalletConnected }) {
+  const { isConnected } = useAccount()
+  useEffect(() => {
+    setIsWalletConnected(!!isConnected)
+  }, [isConnected, setIsWalletConnected])
+  return (
+    <NavigationContext.Provider value={navigationValue}>
+      <Component {...pageProps} />
+    </NavigationContext.Provider>
+  )
+}
 
 export default function App({ Component, pageProps }) {
   const [user, setUser] = useState(null)
@@ -51,9 +63,7 @@ export default function App({ Component, pageProps }) {
     <WagmiConfig config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider chains={chains} theme={isDark ? darkTheme() : lightTheme()}>
-          <NavigationContext.Provider value={navigationValue}>
-            <Component {...pageProps} />
-          </NavigationContext.Provider>
+          <AppInner Component={Component} pageProps={pageProps} navigationValue={navigationValue} setIsWalletConnected={setIsWalletConnected} />
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiConfig>

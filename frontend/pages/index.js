@@ -11,9 +11,11 @@ import {
   SparklesIcon,
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 
 export default function Home() {
-  const { navigateToLearn, navigateToDashboard, navigateToCommunity, navigateToCreate, isDark, setIsDark } = useNavigation();
+  const { navigateToLearn, navigateToDashboard, navigateToCommunity, navigateToCreate, isDark, setIsDark, isWalletConnected } = useNavigation();
+  const { openConnectModal } = useConnectModal();
 
   const features = [
     {
@@ -47,6 +49,11 @@ export default function Home() {
       description: "Special recognition for top contributors in each language"
     }
   ];
+
+  const gateOr = (action) => {
+    if (isWalletConnected) return action();
+    if (openConnectModal) openConnectModal();
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
@@ -87,13 +94,13 @@ export default function Home() {
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
               <button 
-                onClick={navigateToLearn}
+                onClick={() => gateOr(navigateToLearn)}
                 className="bg-primary-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors"
               >
                 Start Learning
               </button>
               <button 
-                onClick={navigateToDashboard}
+                onClick={() => gateOr(navigateToDashboard)}
                 className="border-2 border-primary-600 text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-primary-50 transition-colors"
               >
                 View Dashboard
@@ -170,7 +177,7 @@ export default function Home() {
             Join the movement to make learning accessible, rewarding, and culturally relevant for everyone, everywhere.
           </p>
           <button 
-            onClick={navigateToLearn}
+            onClick={() => gateOr(navigateToLearn)}
             className="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors"
           >
             Get Started Today

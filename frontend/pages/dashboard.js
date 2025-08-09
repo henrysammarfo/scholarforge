@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { 
   AcademicCapIcon, 
   TrophyIcon, 
@@ -20,7 +21,24 @@ import {
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
-  const { navigateToLearn, isDark, setIsDark } = useNavigation();
+  const { navigateToLearn, isDark, setIsDark, isWalletConnected } = useNavigation();
+  const { openConnectModal } = useConnectModal();
+
+  if (!isWalletConnected) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
+        <Head>
+          <title>Dashboard - ScholarForge</title>
+        </Head>
+        <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Connect your wallet to view your dashboard</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">Track progress, XP, NFTs, and settings after connecting.</p>
+          <button onClick={() => openConnectModal && openConnectModal()} className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700">Connect Wallet</button>
+        </div>
+      </div>
+    )
+  }
 
   // Mock user data
   const user = {

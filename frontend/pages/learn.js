@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { 
   AcademicCapIcon, 
   TrophyIcon, 
@@ -13,7 +14,8 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function Learn() {
-  const { isDark, setIsDark } = useNavigation();
+  const { isDark, setIsDark, isWalletConnected } = useNavigation();
+  const { openConnectModal } = useConnectModal();
   const [selectedLanguage, setSelectedLanguage] = useState(null);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [currentQuiz, setCurrentQuiz] = useState(null);
@@ -154,6 +156,22 @@ export default function Learn() {
       return () => clearInterval(timer);
     }
   }, [currentQuestion, currentQuiz]);
+
+  if (!isWalletConnected) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
+        <Head>
+          <title>Learn - ScholarForge</title>
+        </Head>
+        <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Connect your wallet to start learning</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">Access courses, quizzes, XP, and NFTs after connecting.</p>
+          <button onClick={() => openConnectModal && openConnectModal()} className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700">Connect Wallet</button>
+        </div>
+      </div>
+    )
+  }
 
   const handleLanguageSelect = (language) => {
     setSelectedLanguage(language);
