@@ -41,4 +41,8 @@ export default function Header({ onToggleTheme, isDark }) {
       </div>
     </nav>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 6ff7c4a480483561fb833d2984aec87ceef8c6be
