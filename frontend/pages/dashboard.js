@@ -23,14 +23,14 @@ export default function Dashboard() {
   const baseUser = {
     name: "Kwame Asante",
     avatar: "🇬🇭",
-    level: 15,
-    xp: 1250,
-    totalXP: 8500,
-    streak: 7,
-    languages: ["Twi", "English", "French"],
-    nfts: 3,
-    quizzesCompleted: 24,
-    accuracy: 87
+    level: 1,
+    xp: 0,
+    totalXP: 0,
+    streak: 0,
+    languages: [],
+    nfts: 0,
+    quizzesCompleted: 0,
+    accuracy: 0
   };
 
   const [user, setUser] = useState(baseUser);
@@ -38,21 +38,43 @@ export default function Dashboard() {
 
   useEffect(() => {
     try {
-      const xp = Number(localStorage.getItem('sf_user_xp') || `${baseUser.xp}`);
-      const quizzesCompleted = Number(localStorage.getItem('sf_quizzes_completed') || `${baseUser.quizzesCompleted}`);
+      const xp = Number(localStorage.getItem('sf_user_xp') || '0');
+      const quizzesCompleted = Number(localStorage.getItem('sf_quizzes_completed') || '0');
       const nfts = JSON.parse(localStorage.getItem('sf_skill_nfts') || '[]');
       
-      setUser((u) => ({ ...u, xp, quizzesCompleted }));
+      // Calculate level from XP (100 XP per level)
+      const level = Math.max(1, Math.floor(xp / 100) + 1);
+      
+      // Calculate accuracy (if quizzes completed)
+      const accuracy = quizzesCompleted > 0 ? Math.round((xp / (quizzesCompleted * 100)) * 100) : 0;
+      
+      // Get unique languages from localStorage
+      const selectedLangs = JSON.parse(localStorage.getItem('sf_completed_languages') || '[]');
+      
+      setUser((u) => ({ 
+        ...u, 
+        xp, 
+        totalXP: xp,
+        quizzesCompleted, 
+        level,
+        accuracy: Math.min(100, accuracy), // Cap at 100%
+        nfts: nfts.length,
+        languages: selectedLangs
+      }));
       setSkillNFTs(nfts);
     } catch {}
   }, []);
 
-  const recentActivity = [
-    { type: 'quiz', title: 'Ghanaian History Quiz', language: 'Twi', xp: 50, date: '2 hours ago' },
-    { type: 'nft', title: 'Language Hero: Twi', language: 'Twi', xp: 100, date: '1 day ago' },
-    { type: 'quiz', title: 'Crypto Basics', language: 'English', xp: 30, date: '2 days ago' },
-    { type: 'quiz', title: 'Nigerian Culture', language: 'Yoruba', xp: 45, date: '3 days ago' }
-  ];
+  // Get real recent activity from localStorage
+  const getRecentActivity = () => {
+    try {
+      return JSON.parse(localStorage.getItem('sf_recent_activity') || '[]');
+    } catch {
+      return [];
+    }
+  };
+
+  const [recentActivity, setRecentActivity] = useState(getRecentActivity());
 
   const learningStats = [
     { label: 'Languages', value: user.languages.length, icon: GlobeAltIcon, color: 'primary' },

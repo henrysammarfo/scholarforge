@@ -9,16 +9,95 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Prompt is required' });
   }
 
+  console.log(`[AI API] Generating lesson for prompt: "${prompt}" in language: ${language}`);
+
   try {
-    // For demo purposes, we'll use a mock AI response
-    // In production, you would integrate with OpenAI, Gemini, or other AI providers
+    // Check if real AI is enabled via environment variable
+    const useRealAI = process.env.USE_REAL_AI === 'true';
     
-    const lessonContent = generateMockLesson(prompt, language);
+    let lessonContent;
     
+    if (useRealAI && process.env.OPENAI_API_KEY) {
+      lessonContent = await generateWithOpenAI(prompt, language);
+    } else {
+      // DEMO MODE: Using intelligent mock AI responses
+      console.log('[AI API] Using mock AI (set USE_REAL_AI=true and OPENAI_API_KEY to use real AI)');
+      
+      // Simulate AI processing time for realistic demo
+      await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+      
+      lessonContent = generateMockLesson(prompt, language);
+    }
+    
+    console.log(`[AI API] Successfully generated lesson: "${lessonContent.lessonTitle}"`);
     res.status(200).json(lessonContent);
   } catch (error) {
-    console.error('Error generating lesson:', error);
+    console.error('[AI API] Error generating lesson:', error);
     res.status(500).json({ error: 'Failed to generate lesson' });
+  }
+}
+
+async function generateWithOpenAI(prompt, language) {
+  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  
+  const systemPrompt = `You are an AI tutor creating educational content for African learners. Generate lessons that are:
+- Culturally relevant to African contexts
+- Practical and applicable to local situations
+- Include real examples from African countries
+- Appropriate for ${language === 'sw' ? 'Swahili speakers' : 'English speakers'}
+- Focus on skills that are valuable in African economies
+
+Generate the response in the following JSON format:
+{
+  "lessonTitle": "Title of the lesson",
+  "lessonContent": "Full lesson content with examples and explanations",
+  "quiz": [
+    {
+      "question": "Question text",
+      "options": ["option1", "option2", "option3", "option4"],
+      "correct": 0,
+      "explanation": "Why this answer is correct"
+    }
+  ]
+}`;
+
+  const userPrompt = `Create a lesson about: ${prompt}
+Language: ${language === 'sw' ? 'Swahili' : 'English'}
+Focus on African applications and contexts.`;
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        max_tokens: 2000,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
+    
+    // Parse the JSON response
+    const lessonData = JSON.parse(content);
+    
+    return lessonData;
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+    // Fallback to mock if OpenAI fails
+    return generateMockLesson(prompt, language);
   }
 }
 

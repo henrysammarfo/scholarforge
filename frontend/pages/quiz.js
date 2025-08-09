@@ -146,6 +146,28 @@ export default function Quiz() {
         try {
           localStorage.setItem('sf_last_mint_tx', result.txHash);
           localStorage.setItem('sf_onchain_xp', String(Number(localStorage.getItem('sf_onchain_xp') || '0') + xpEarned));
+          
+          // Add to recent activity
+          const activity = {
+            type: 'quiz',
+            title: `${meta.topicName} Quiz`,
+            language: meta.languageName,
+            xp: xpEarned,
+            date: new Date().toLocaleString(),
+            txHash: result.txHash
+          };
+          
+          const recentActivity = JSON.parse(localStorage.getItem('sf_recent_activity') || '[]');
+          recentActivity.unshift(activity); // Add to beginning
+          if (recentActivity.length > 10) recentActivity.pop(); // Keep only last 10
+          localStorage.setItem('sf_recent_activity', JSON.stringify(recentActivity));
+          
+          // Track completed languages
+          const completedLangs = JSON.parse(localStorage.getItem('sf_completed_languages') || '[]');
+          if (!completedLangs.includes(meta.languageName)) {
+            completedLangs.push(meta.languageName);
+            localStorage.setItem('sf_completed_languages', JSON.stringify(completedLangs));
+          }
         } catch {}
       }
     } catch (error) {

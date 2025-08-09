@@ -170,6 +170,50 @@ export const courseContent = {
           type: "text"
         }
       ]
+    },
+    yo: {
+      title: "Ìdánilẹ́kọ̀ọ́ àti Àṣà Áfríkà",
+      description: "Kẹ́kọ̀ọ́ nípa ọrọ̀ àti àṣà Áfríkà tó ní ìtàn tó jinlẹ̀.",
+      lessons: [
+        {
+          id: 1,
+          title: "Ìfihàn Àṣà Áfríkà",
+          content: `Áfríkà jẹ́ ilẹ̀ kan tó ní ìyàtọ̀ púpọ̀ tó ní ẹgbẹẹgbẹ̀rún mẹ́ta ẹ̀yà ènìyàn àti àṣà tó ní ìtàn ẹgbẹẹgbẹ̀rún ọdún.
+
+**Àwọn Ẹ̀yà Àṣà Pàtàkì:**
+• **Èdè**: Ẹgbẹẹgbẹ̀rún méjì èdè tí a ń sọ ní gbogbo orílẹ̀-èdè
+• **Aṣọ Ìbílẹ̀**: Kente, Dashiki, Boubou, àti àwọn aṣọ àṣà mìíràn
+• **Orin àti Ijó**: Ìlù ìbílẹ̀, ijó ìsìn, àti àwọn oriṣi òde òní
+• **Ètò Àwùjọ**: Ìtẹ́ra lórí àwùjọ, ọ̀wọ̀ fún àgbàgbà, àti ìmọ̀lára ubuntu
+
+**Àwọn Iye Pàtàkì:**
+- Ìmọ̀lára Ubuntu: "Mo wà nítorí àwa wà"
+- Ọ̀wọ̀ fún àwọn baba ńlá àti àṣà
+- Ìtẹ́wọ́gbà àti àtìlẹ́yìn àwùjọ
+- Àṣà ẹnu àti àlọ́ ítan`,
+          duration: "ìṣẹ́jú 8",
+          type: "text"
+        },
+        {
+          id: 2,
+          title: "Àwọn Àjọyọ̀ Ìbílẹ̀",
+          content: `Àwọn àjọyọ̀ Áfríkà jẹ́ àwọn àyẹyẹ tó ní àwọ̀ tó ń so àwùjọ pọ̀ mọ́ ogún àti àṣà àwọn baba ńlá.
+
+**Àwọn Àjọyọ̀ Pàtàkì Ní Gbogbo Áfríkà:**
+
+**Àjọyọ̀ Homowo (Àwọn Ará Ga)**
+- Ìtumọ̀: "Ẹ̀gàn ebi"
+- Ó ń ṣàjọyọ̀ ìkórè rere
+- Ó ní ijó ìbílẹ̀ àti oúnjẹ àkànṣe
+
+**Àjọyọ̀ Timkat (Ethiopia)**
+- Àjọyọ̀ Kírístì Orthodox
+- Àwọn ìrìn àjọyọ̀ tó ní àwọ̀ àti àwọn ìṣín omi
+- Ó ń ṣàjọyọ̀ ìtẹ̀bọmi Jésù`,
+          duration: "ìṣẹ́jú 10",
+          type: "text"
+        }
+      ]
     }
   },
   crypto: {
@@ -995,6 +1039,26 @@ export const getQuizQuestions = (topicId, languageCode = 'en') => {
           options: ["Nguo za kawaida", "Ufalme na heshima", "Sare za kazi", "Ushawishi wa kigeni"],
           correct: 1,
           explanation: "Nguo za Kente zilivaliwak na wafalme na kuwakilisha heshima na hadhi."
+        }
+      ],
+      yo: [
+        {
+          question: "Kí ni ìmọ̀lára Ubuntu túmọ̀ sí?",
+          options: ["Mo wà nítorí àwa wà", "Àṣeyọrí ti ẹni kọ̀ọ̀kan", "Ìmọ̀ ẹrọ òde òní", "Àwọn iye Òyìnbó"],
+          correct: 0,
+          explanation: "Ubuntu jẹ́ ìmọ̀lára Áfríkà tó ń tẹnumọ́ ìjọra àti àwùjọ."
+        },
+        {
+          question: "Àjọyọ̀ wo ni ó ń ṣàjọyọ̀ 'ẹ̀gàn ebi'?",
+          options: ["Timkat", "Homowo", "Umhlanga", "Àjọyọ̀ Isu"],
+          correct: 1,
+          explanation: "Àjọyọ̀ Homowo ní Ghana ń ṣàjọyọ̀ ìkórè rere àti ọ̀pọ̀lọpọ̀."
+        },
+        {
+          question: "Kí ni aṣọ Kente fihàn ní àkọ́kọ́?",
+          options: ["Aṣọ lásán", "Ọbáńlá àti ọlá", "Aṣọ iṣẹ́", "Ipa àjèjì"],
+          correct: 1,
+          explanation: "Aṣọ Kente ni àwọn ọba máa ń wọ̀ tí ó sì ń fihàn ọlá àti ipò."
         }
       ]
     },

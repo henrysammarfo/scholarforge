@@ -56,10 +56,14 @@ export default function Course() {
 
       // Get course content for this topic and language
       const content = courseContent[topicId];
+      console.log('Loading course for:', { topicId, langCode, hasContent: !!content });
+      
       if (content) {
         const languageContent = content[langCode] || content['en']; // Fallback to English
+        console.log('Language content found:', !!languageContent);
+        
         if (languageContent) {
-          setCourseData({
+          const newCourseData = {
             title: languageContent.title,
             language: langName,
             topic: topicName,
@@ -68,24 +72,42 @@ export default function Course() {
             estimatedTime: `${languageContent.lessons.length * 8} minutes`,
             difficulty: "Beginner",
             lessons: languageContent.lessons
+          };
+          console.log('Setting course data:', newCourseData.title);
+          setCourseData(newCourseData);
+        } else {
+          console.warn('No language content found for:', langCode);
+          setCourseData({
+            title: "Language Not Available",
+            language: langName,
+            topic: topicName,
+            description: `Course content is not available in ${langName}. Please try English.`,
+            totalLessons: 1,
+            estimatedTime: "5 minutes",
+            difficulty: "Beginner",
+            lessons: [{
+              id: 1,
+              title: "Language Not Available",
+              content: `This course is not yet available in ${langName}. Please select English to continue.`,
+              duration: "1 minute",
+        type: "text"
+            }]
           });
         }
-      }
-      
-      // If no content found, set default
-      if (!courseData) {
+      } else {
+        console.warn('No content found for topic:', topicId);
         setCourseData({
-          title: "Course Content Loading...",
+          title: "Topic Not Found",
           language: langName,
           topic: topicName,
-          description: "Loading course content...",
+          description: "This topic is not yet available. Please try another topic.",
           totalLessons: 1,
           estimatedTime: "5 minutes",
           difficulty: "Beginner",
           lessons: [{
             id: 1,
-            title: "Content Loading",
-            content: "Course content is being loaded. Please check your topic and language selection.",
+            title: "Topic Not Available",
+            content: "This course topic is not yet available. Please go back and select another topic.",
             duration: "1 minute",
         type: "text"
           }]
@@ -96,10 +118,10 @@ export default function Course() {
     }
   }, []);
 
-    useEffect(() => {
+  useEffect(() => {
     if (courseData) {
-      const progress = (completedLessons.length / courseData.totalLessons) * 100;
-      setCourseProgress(progress);
+    const progress = (completedLessons.length / courseData.totalLessons) * 100;
+    setCourseProgress(progress);
       
       // Check if course is 100% completed for NFT minting
       if (progress === 100 && !showNFTMinting && !nftMintResult) {
@@ -134,9 +156,9 @@ export default function Course() {
     }
   };
 
-    const goToQuiz = () => {
+  const goToQuiz = () => {
     if (courseData) {
-      markLessonComplete(courseData.lessons[currentLesson].id);
+    markLessonComplete(courseData.lessons[currentLesson].id);
       
       // Store topic and language for quiz
       try {
@@ -198,6 +220,21 @@ export default function Course() {
           const existingNFTs = JSON.parse(localStorage.getItem('sf_skill_nfts') || '[]');
           existingNFTs.push(nftData);
           localStorage.setItem('sf_skill_nfts', JSON.stringify(existingNFTs));
+          
+          // Add NFT mint to recent activity
+          const activity = {
+            type: 'nft',
+            title: `${skillDetails.skill} NFT`,
+            language: courseMeta.languageName,
+            xp: 100, // Bonus XP for NFT
+            date: new Date().toLocaleString(),
+            txHash: result.txHash
+          };
+          
+          const recentActivity = JSON.parse(localStorage.getItem('sf_recent_activity') || '[]');
+          recentActivity.unshift(activity);
+          if (recentActivity.length > 10) recentActivity.pop();
+          localStorage.setItem('sf_recent_activity', JSON.stringify(recentActivity));
         } catch {}
       }
     } catch (error) {
