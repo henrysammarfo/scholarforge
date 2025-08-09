@@ -54,6 +54,20 @@ contract XPToken is ERC20, AccessControl, Pausable {
     }
 
     /**
+     * @notice Batch mint XP to multiple users (only QuizMaster)
+     * @param recipients Addresses to receive XP
+     * @param amounts Corresponding XP amounts
+     * @param reasons Corresponding reasons for minting
+     */
+    function batchMint(address[] calldata recipients, uint256[] calldata amounts, string[] calldata reasons) external onlyRole(QUIZMASTER_ROLE) whenNotPaused {
+        require(recipients.length == amounts.length && amounts.length == reasons.length, "Array length mismatch");
+        for (uint256 i = 0; i < recipients.length; i++) {
+            _mint(recipients[i], amounts[i]);
+            emit XPMinted(recipients[i], amounts[i], reasons[i]);
+        }
+    }
+
+    /**
      * @notice Burn XP from a user (only QuizMaster)
      * @param from Address to burn from
      * @param amount Amount to burn

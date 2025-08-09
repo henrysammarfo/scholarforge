@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
+import Header from '../components/Header';
 import { useNavigation } from './_app';
 import { 
   AcademicCapIcon, 
@@ -12,7 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function Home() {
-  const { isWalletConnected, setIsWalletConnected, navigateToLearn, navigateToDashboard, navigateToCommunity, navigateToCreate } = useNavigation();
+  const { navigateToLearn, navigateToDashboard, navigateToCommunity, navigateToCreate, isDark, setIsDark } = useNavigation();
 
   const features = [
     {
@@ -48,36 +49,14 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
       <Head>
         <title>ScholarForge - Learn Local, Earn Global</title>
         <meta name="description" content="Revolutionary onchain learning platform for African languages" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <AcademicCapIcon className="h-8 w-8 text-primary-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">ScholarForge</span>
-            </div>
-                                      <div className="flex items-center space-x-4">
-               <button onClick={navigateToLearn} className="text-gray-600 hover:text-gray-900">Learn</button>
-               <button onClick={navigateToDashboard} className="text-gray-600 hover:text-gray-900">Dashboard</button>
-               <button onClick={navigateToCommunity} className="text-gray-600 hover:text-gray-900">Community</button>
-               <button onClick={navigateToCreate} className="text-gray-600 hover:text-gray-900">Create</button>
-               <button 
-                 onClick={() => setIsWalletConnected(!isWalletConnected)}
-                 className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
-               >
-                 {isWalletConnected ? 'Connected' : 'Connect Wallet'}
-               </button>
-             </div>
-          </div>
-        </div>
-      </nav>
+      <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
@@ -87,7 +66,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-5xl md:text-7xl font-bold text-gray-900 mb-6"
+              className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6"
             >
               Learn Local,
               <span className="text-primary-600"> Earn Global</span>
@@ -96,7 +75,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto"
+              className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto"
             >
               The revolutionary onchain learning platform that empowers students to learn in their native languages, 
               earn verifiable credentials, and contribute to the global knowledge economy.
@@ -125,13 +104,13 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
               Why Choose ScholarForge?
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               We're not just another learning app—we're building a movement to democratize education globally.
             </p>
           </div>
@@ -142,13 +121,13 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-gray-50 p-6 rounded-xl hover:shadow-lg transition-shadow"
+                className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl hover:shadow-lg transition-shadow"
               >
                 <feature.icon className="h-12 w-12 text-primary-600 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-300">
                   {feature.description}
                 </p>
               </motion.div>

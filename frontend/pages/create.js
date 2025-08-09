@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
+import Header from '../components/Header';
 import { useNavigation } from './_app';
 import { 
   AcademicCapIcon, 
@@ -15,7 +16,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function Create() {
-  const { navigateToCommunity, navigateToDashboard, navigateHome } = useNavigation();
+  const { navigateToCommunity, navigateToDashboard, navigateHome, isDark, setIsDark } = useNavigation();
   const [currentStep, setCurrentStep] = useState(1);
   const [quizData, setQuizData] = useState({
     title: '',
@@ -128,29 +129,13 @@ export default function Create() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
       <Head>
         <title>Create Quiz - ScholarForge</title>
         <meta name="description" content="Create and share educational quizzes with the ScholarForge community" />
       </Head>
 
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <button onClick={navigateHome}>
-                <AcademicCapIcon className="h-8 w-8 text-primary-600" />
-              </button>
-              <span className="ml-2 text-xl font-bold text-gray-900">ScholarForge</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button onClick={navigateToCommunity} className="text-gray-600 hover:text-gray-900">Community</button>
-              <button onClick={navigateToDashboard} className="text-gray-600 hover:text-gray-900">Dashboard</button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
@@ -159,8 +144,8 @@ export default function Create() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Create a Quiz</h1>
-          <p className="text-xl text-gray-600">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Create a Quiz</h1>
+          <p className="text-xl text-gray-600 dark:text-gray-300">
             Share your knowledge and earn XP by creating educational content for the community.
           </p>
         </motion.div>
@@ -181,7 +166,7 @@ export default function Create() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8">
           {/* Step 1: Basic Information */}
           {currentStep === 1 && (
             <motion.div
@@ -189,37 +174,37 @@ export default function Create() {
               animate={{ opacity: 1, x: 0 }}
               className="space-y-6"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Basic Information</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Basic Information</h2>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Quiz Title *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quiz Title *</label>
                 <input
                   type="text"
                   value={quizData.title}
                   onChange={(e) => setQuizData({...quizData, title: e.target.value})}
                   placeholder="e.g., Ghanaian Culture and Traditions"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
                 <textarea
                   value={quizData.description}
                   onChange={(e) => setQuizData({...quizData, description: e.target.value})}
                   placeholder="Brief description of what learners will gain from this quiz..."
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Language *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Language *</label>
                   <select
                     value={quizData.language}
                     onChange={(e) => setQuizData({...quizData, language: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   >
                     <option value="">Select Language</option>
                     {languages.map((lang) => (
@@ -231,11 +216,11 @@ export default function Create() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Topic *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Topic *</label>
                   <select
                     value={quizData.topic}
                     onChange={(e) => setQuizData({...quizData, topic: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   >
                     <option value="">Select Topic</option>
                     {topics.map((topic) => (
@@ -249,11 +234,11 @@ export default function Create() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Difficulty</label>
                   <select
                     value={quizData.difficulty}
                     onChange={(e) => setQuizData({...quizData, difficulty: e.target.value})}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   >
                     <option value="beginner">Beginner</option>
                     <option value="intermediate">Intermediate</option>
@@ -262,14 +247,14 @@ export default function Create() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">XP Reward</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">XP Reward</label>
                   <input
                     type="number"
                     value={quizData.xpReward}
                     onChange={(e) => setQuizData({...quizData, xpReward: parseInt(e.target.value)})}
                     min="10"
                     max="200"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   />
                 </div>
               </div>
@@ -284,7 +269,7 @@ export default function Create() {
               className="space-y-6"
             >
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900">Quiz Questions</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Quiz Questions</h2>
                 <button
                   onClick={addQuestion}
                   className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center"
@@ -295,9 +280,9 @@ export default function Create() {
               </div>
 
               {quizData.questions.map((question, index) => (
-                <div key={question.id} className="border border-gray-200 rounded-lg p-6 space-y-4">
+                <div key={question.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 space-y-4">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-gray-900">Question {index + 1}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Question {index + 1}</h3>
                     {quizData.questions.length > 1 && (
                       <button
                         onClick={() => removeQuestion(question.id)}
@@ -309,18 +294,18 @@ export default function Create() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Question *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Question *</label>
                     <input
                       type="text"
                       value={question.question}
                       onChange={(e) => updateQuestion(question.id, 'question', e.target.value)}
                       placeholder="Enter your question..."
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Answer Options *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Answer Options *</label>
                     <div className="space-y-2">
                       {question.answers.map((answer, answerIndex) => (
                         <div key={answerIndex} className="flex items-center space-x-3">
@@ -336,22 +321,22 @@ export default function Create() {
                             value={answer}
                             onChange={(e) => updateAnswer(question.id, answerIndex, e.target.value)}
                             placeholder={`Option ${answerIndex + 1}`}
-                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                           />
                         </div>
                       ))}
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">Select the correct answer by clicking the radio button</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Select the correct answer by clicking the radio button</p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Explanation (Optional)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Explanation (Optional)</label>
                     <textarea
                       value={question.explanation}
                       onChange={(e) => updateQuestion(question.id, 'explanation', e.target.value)}
                       placeholder="Explain why this is the correct answer..."
                       rows={2}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     />
                   </div>
                 </div>
@@ -366,43 +351,43 @@ export default function Create() {
               animate={{ opacity: 1, x: 0 }}
               className="space-y-6"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Review Your Quiz</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Review Your Quiz</h2>
               
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">{quizData.title}</h3>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">{quizData.title}</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-600">Language:</span>
-                    <div className="font-medium">
+                    <span className="text-gray-600 dark:text-gray-300">Language:</span>
+                    <div className="font-medium text-gray-900 dark:text-white">
                       {languages.find(l => l.code === quizData.language)?.flag} {languages.find(l => l.code === quizData.language)?.name}
                     </div>
                   </div>
                   <div>
-                    <span className="text-gray-600">Topic:</span>
-                    <div className="font-medium">
+                    <span className="text-gray-600 dark:text-gray-300">Topic:</span>
+                    <div className="font-medium text-gray-900 dark:text-white">
                       {topics.find(t => t.id === quizData.topic)?.icon} {topics.find(t => t.id === quizData.topic)?.name}
                     </div>
                   </div>
                   <div>
-                    <span className="text-gray-600">Difficulty:</span>
-                    <div className="font-medium capitalize">{quizData.difficulty}</div>
+                    <span className="text-gray-600 dark:text-gray-300">Difficulty:</span>
+                    <div className="font-medium capitalize text-gray-900 dark:text-white">{quizData.difficulty}</div>
                   </div>
                   <div>
-                    <span className="text-gray-600">XP Reward:</span>
-                    <div className="font-medium">{quizData.xpReward} XP</div>
+                    <span className="text-gray-600 dark:text-gray-300">XP Reward:</span>
+                    <div className="font-medium text-gray-900 dark:text-white">{quizData.xpReward} XP</div>
                   </div>
                 </div>
                 {quizData.description && (
-                  <p className="text-gray-700 mt-4">{quizData.description}</p>
+                  <p className="text-gray-700 dark:text-gray-300 mt-4">{quizData.description}</p>
                 )}
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Questions ({quizData.questions.length})</h4>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Questions ({quizData.questions.length})</h4>
                 <div className="space-y-4">
                   {quizData.questions.map((question, index) => (
-                    <div key={question.id} className="border border-gray-200 rounded-lg p-4">
-                      <h5 className="font-medium text-gray-900 mb-2">
+                    <div key={question.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                      <h5 className="font-medium text-gray-900 dark:text-white mb-2">
                         {index + 1}. {question.question}
                       </h5>
                       <div className="grid grid-cols-2 gap-2">
@@ -410,14 +395,14 @@ export default function Create() {
                           <div key={answerIndex} className={`p-2 rounded text-sm ${
                             answerIndex === question.correctAnswer 
                               ? 'bg-success-100 text-success-800 border border-success-300' 
-                              : 'bg-gray-100 text-gray-700'
+                              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
                           }`}>
                             {answer}
                           </div>
                         ))}
                       </div>
                       {question.explanation && (
-                        <p className="text-sm text-gray-600 mt-2 italic">{question.explanation}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 italic">{question.explanation}</p>
                       )}
                     </div>
                   ))}
@@ -437,11 +422,11 @@ export default function Create() {
           )}
 
           {/* Navigation */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+          <div className="flex justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <button
               onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
               disabled={currentStep === 1}
-              className="px-6 py-3 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ← Previous
             </button>
