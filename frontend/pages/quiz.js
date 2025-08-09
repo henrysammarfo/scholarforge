@@ -5,7 +5,8 @@ import Header from '../components/Header';
 import { useNavigation } from './_app';
 import { getQuizQuestions } from '../data/courseContent';
 import { mintXPForQuiz, isCorrectNetwork, switchToEduChain } from '../utils/blockchain';
-import { useAccount, useSigner, useNetwork } from 'wagmi';
+import { useAccount, useNetwork } from 'wagmi';
+import { useWalletClient } from 'wagmi';
 import { TrophyIcon, ClockIcon, CheckCircleIcon, ArrowRightIcon, CurrencyDollarIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 function getQuizData(topicId, languageCode) {
@@ -35,7 +36,7 @@ function getQuizData(topicId, languageCode) {
 export default function Quiz() {
   const { isDark, setIsDark, navigateToDashboard } = useNavigation();
   const { address, isConnected } = useAccount();
-  const { data: signer } = useSigner();
+  const { data: walletClient } = useWalletClient();
   const { chain } = useNetwork();
   
   const [meta, setMeta] = useState({ languageCode: 'en', languageName: 'English', topicId: 'culture', topicName: 'Cultural Studies' });
@@ -109,7 +110,7 @@ export default function Quiz() {
   };
 
   const handleMintXP = async () => {
-    if (!isConnected || !signer || !address) {
+    if (!isConnected || !walletClient || !address) {
       alert('Please connect your wallet first');
       return;
     }
@@ -138,7 +139,7 @@ export default function Quiz() {
         questionsTotal: quiz.questions.length
       };
 
-      const result = await mintXPForQuiz(signer, address, xpEarned, quizDetails);
+      const result = await mintXPForQuiz(walletClient, address, xpEarned, quizDetails);
       setMintResult(result);
 
       if (result.success) {

@@ -5,7 +5,8 @@ import Header from '../components/Header';
 import { useNavigation } from './_app';
 import { courseContent } from '../data/courseContent';
 import { mintSkillNFT, isCorrectNetwork, switchToEduChain } from '../utils/blockchain';
-import { useAccount, useSigner, useNetwork } from 'wagmi';
+import { useAccount, useNetwork } from 'wagmi';
+import { useWalletClient } from 'wagmi';
 import { 
   BookOpenIcon,
   CheckCircleIcon,
@@ -26,7 +27,7 @@ function cleanMarkdown(text) {
 export default function Course() {
   const { navigateToLearn, navigateToDashboard, isDark, setIsDark } = useNavigation();
   const { address, isConnected } = useAccount();
-  const { data: signer } = useSigner();
+  const { data: walletClient } = useWalletClient();
   const { chain } = useNetwork();
   
   const [currentLesson, setCurrentLesson] = useState(0);
@@ -171,7 +172,7 @@ export default function Course() {
   };
 
   const handleMintSkillNFT = async () => {
-    if (!isConnected || !signer || !address) {
+    if (!isConnected || !walletClient || !address) {
       alert('Please connect your wallet first');
       return;
     }
@@ -201,7 +202,7 @@ export default function Course() {
         completionPercentage: 100
       };
 
-      const result = await mintSkillNFT(signer, address, skillDetails);
+      const result = await mintSkillNFT(walletClient, address, skillDetails);
       setNFTMintResult(result);
 
       if (result.success) {
