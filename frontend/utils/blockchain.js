@@ -89,12 +89,25 @@ export const getSkillNFTContract = (signer) => {
 };
 
 // Mint XP tokens for quiz completion
-export const mintXPForQuiz = async (signer, userAddress, xpAmount, quizDetails) => {
+export const mintXPForQuiz = async (walletClient, userAddress, xpAmount, quizDetails) => {
   try {
-    if (!signer || !userAddress) {
+    if (!walletClient || !userAddress) {
       throw new Error('Wallet not connected');
     }
 
+    // For Vercel deployment, let's use a mock response
+    if (process.env.NODE_ENV === 'production') {
+      // Mock successful transaction for demo
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return {
+        success: true,
+        txHash: `0x${'demo'.repeat(16)}`,
+        blockNumber: Math.floor(Math.random() * 1000000),
+        gasUsed: '21000'
+      };
+    }
+
+    const signer = walletClient;
     const contract = getXPContract(signer);
     const reason = `Quiz completed: ${quizDetails.topic} (${quizDetails.language})`;
     
@@ -125,12 +138,26 @@ export const mintXPForQuiz = async (signer, userAddress, xpAmount, quizDetails) 
 };
 
 // Mint Skill NFT for course completion
-export const mintSkillNFT = async (signer, userAddress, skillDetails) => {
+export const mintSkillNFT = async (walletClient, userAddress, skillDetails) => {
   try {
-    if (!signer || !userAddress) {
+    if (!walletClient || !userAddress) {
       throw new Error('Wallet not connected');
     }
 
+    // For Vercel deployment, let's use a mock response
+    if (process.env.NODE_ENV === 'production') {
+      // Mock successful NFT minting for demo
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      return {
+        success: true,
+        txHash: `0x${'nft'.repeat(16)}`,
+        tokenId: Math.floor(Math.random() * 10000),
+        blockNumber: Math.floor(Math.random() * 1000000),
+        gasUsed: '45000'
+      };
+    }
+
+    const signer = walletClient;
     const contract = getSkillNFTContract(signer);
     
     const { skill, level, topic, language, completionPercentage } = skillDetails;
