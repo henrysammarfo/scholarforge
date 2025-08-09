@@ -1,38 +1,42 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
+import Header from '../components/Header';
 import { useNavigation } from './_app';
 import { 
-  AcademicCapIcon, 
   BookOpenIcon,
-  PlayIcon,
   CheckCircleIcon,
   ArrowRightIcon,
   ClockIcon,
-  UserGroupIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
 
+function cleanMarkdown(text) {
+  if (!text) return '';
+  return text.replace(/\*\*(.*?)\*\*/g, '$1');
+}
+
 export default function Course() {
-  const { navigateToLearn, navigateToDashboard } = useNavigation();
+  const { navigateToLearn, navigateToDashboard, isDark, setIsDark } = useNavigation();
   const [currentLesson, setCurrentLesson] = useState(0);
   const [completedLessons, setCompletedLessons] = useState([]);
   const [courseProgress, setCourseProgress] = useState(0);
+  const [courseMeta, setCourseMeta] = useState({ languageName: '', topicName: '' });
 
   // Mock course data - would come from API
+  // Build course content dynamically based on selected topic
+  const selectedTopicId = typeof window !== 'undefined' ? (localStorage.getItem('sf_selected_topic_id') || 'culture') : 'culture';
+  const topicTitleMap = { culture: 'African Culture & Traditions', food: 'African Cuisine', sports: 'Sports & Fitness', crypto: 'Crypto & Web3', science: 'Science & Tech', business: 'Business & Entrepreneurship', history: 'African History', arts: 'Arts & Music' };
   const courseData = {
-    title: "Ghanaian Culture & Traditions",
-    language: "English",
-    topic: "Cultural Studies",
+    title: topicTitleMap[selectedTopicId] || 'Course',
+    language: "",
+    topic: selectedTopicId,
     description: "Learn about the rich cultural heritage of Ghana, including traditions, festivals, and social customs.",
     totalLessons: 5,
     estimatedTime: "45 minutes",
     difficulty: "Beginner",
     lessons: [
-      {
-        id: 1,
-        title: "Introduction to Ghanaian Culture",
-        content: `Ghana is a West African country with a rich cultural heritage spanning over 1000 years. The country is home to over 100 ethnic groups, each with their unique traditions, languages, and customs.
+      { id: 1, title: "Introduction to Ghanaian Culture", content: `Ghana is a West African country with a rich cultural heritage spanning over 1000 years. The country is home to over 100 ethnic groups, each with their unique traditions, languages, and customs.
 
 **Key Cultural Elements:**
 • **Languages**: Over 80 languages spoken, with Twi, Ga, Ewe, and Dagbani being major ones
@@ -44,14 +48,13 @@ export default function Course() {
 - Ubuntu philosophy: "I am because we are"
 - Respect for ancestors and tradition
 - Hospitality and community support
-- Oral tradition and storytelling`,
-        duration: "8 minutes",
-        type: "text"
-      },
-      {
-        id: 2,
-        title: "Traditional Festivals",
-        content: `Ghanaian festivals are vibrant celebrations that connect communities to their ancestral heritage and agricultural cycles.
+- Oral tradition and storytelling`, duration: "8 minutes", type: "text" },
+      { id: 2, title: selectedTopicId === 'food' ? 'Staple Dishes Across Africa' : "Traditional Festivals", content: selectedTopicId === 'food' ? `Explore staple dishes like Jollof, Fufu, Injera, and Kelewele across regions, their ingredients, and cultural context.
+
+Nutrition & Culture:
+- Communal eating traditions
+- Seasonal ingredients and sustainability
+- Health perspectives and modern twists` : `Ghanaian festivals are vibrant celebrations that connect communities to their ancestral heritage and agricultural cycles.
 
 **Major Festivals:**
 
@@ -74,14 +77,13 @@ export default function Course() {
 - Strengthens community bonds
 - Preserves oral traditions
 - Educates younger generations
-- Attracts tourism and economic benefits`,
-        duration: "10 minutes",
-        type: "text"
-      },
-      {
-        id: 3,
-        title: "Traditional Greetings & Social Customs",
-        content: `Understanding Ghanaian greetings and social customs is essential for respectful cultural interaction.
+- Attracts tourism and economic benefits`, duration: "10 minutes", type: "text" },
+      { id: 3, title: selectedTopicId === 'sports' ? 'Sports in African Communities' : "Traditional Greetings & Social Customs", content: selectedTopicId === 'sports' ? `A look at football, athletics, and community fitness practices.
+
+Highlights:
+- Football as a unifier
+- Local games and their values
+- Role of sports in youth development` : `Understanding Ghanaian greetings and social customs is essential for respectful cultural interaction.
 
 **Common Greetings in Twi:**
 - "Akwaaba" - Welcome
@@ -99,14 +101,8 @@ export default function Course() {
 - Pointing with left hand
 - Stepping over someone lying down
 - Wearing shoes in certain traditional spaces
-- Refusing offered food or drink without polite explanation`,
-        duration: "7 minutes",
-        type: "text"
-      },
-      {
-        id: 4,
-        title: "Traditional Arts & Crafts",
-        content: `Ghanaian arts and crafts reflect the country's rich cultural diversity and skilled craftsmanship.
+- Refusing offered food or drink without polite explanation`, duration: "7 minutes", type: "text" },
+      { id: 4, title: "Traditional Arts & Crafts", content: `Ghanaian arts and crafts reflect the country's rich cultural diversity and skilled craftsmanship.
 
 **Kente Cloth:**
 - Hand-woven by master weavers
@@ -132,14 +128,8 @@ export default function Course() {
 **Modern Applications:**
 - Tourism and export industries
 - Fashion and interior design
-- Cultural education and preservation`,
-        duration: "12 minutes",
-        type: "text"
-      },
-      {
-        id: 5,
-        title: "Food Culture & Culinary Traditions",
-        content: `Ghanaian cuisine reflects the country's agricultural abundance and cultural diversity.
+- Cultural education and preservation`, duration: "12 minutes", type: "text" },
+      { id: 5, title: "Food Culture & Culinary Traditions", content: `Ghanaian cuisine reflects the country's agricultural abundance and cultural diversity.
 
 **Staple Foods:**
 - **Rice**: Often served with stews and sauces
@@ -162,10 +152,7 @@ export default function Course() {
 - Open fire cooking in rural areas
 - Palm oil as primary cooking fat
 - Extensive use of spices and peppers
-- Preservation through drying and smoking`,
-        duration: "8 minutes",
-        type: "text"
-      }
+- Preservation through drying and smoking`, duration: "8 minutes", type: "text" }
     ]
   };
 
@@ -173,6 +160,14 @@ export default function Course() {
     const progress = (completedLessons.length / courseData.totalLessons) * 100;
     setCourseProgress(progress);
   }, [completedLessons]);
+
+  useEffect(() => {
+    try {
+      const langName = localStorage.getItem('sf_selected_language_name') || ''
+      const topicName = localStorage.getItem('sf_selected_topic_name') || ''
+      setCourseMeta({ languageName: langName, topicName })
+    } catch {}
+  }, [])
 
   const markLessonComplete = (lessonId) => {
     if (!completedLessons.includes(lessonId)) {
@@ -194,35 +189,20 @@ export default function Course() {
   };
 
   const goToQuiz = () => {
-    // Mark current lesson as complete and go to quiz
     markLessonComplete(courseData.lessons[currentLesson].id);
-    navigateToLearn();
+    window.location.href = '/quiz';
   };
 
   const currentLessonData = courseData.lessons[currentLesson];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
       <Head>
-        <title>Course: {courseData.title} - ScholarForge</title>
+        <title>Course: {courseMeta.topicName || courseData.title} - ScholarForge</title>
         <meta name="description" content={courseData.description} />
       </Head>
 
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <AcademicCapIcon className="h-8 w-8 text-primary-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">ScholarForge</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button onClick={navigateToDashboard} className="text-gray-600 hover:text-gray-900">Dashboard</button>
-              <div className="text-sm text-gray-600">Progress: {Math.round(courseProgress)}%</div>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -231,21 +211,22 @@ export default function Course() {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-xl shadow-md p-6 sticky top-24"
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6 sticky top-24"
             >
-              <h2 className="text-lg font-bold text-gray-900 mb-4">{courseData.title}</h2>
-              
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{courseMeta.topicName || courseData.title}</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Language: {courseMeta.languageName || courseData.language}</p>
+
               {/* Course Info */}
               <div className="space-y-3 mb-6">
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                   <ClockIcon className="h-4 w-4 mr-2" />
                   {courseData.estimatedTime}
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                   <BookOpenIcon className="h-4 w-4 mr-2" />
                   {courseData.totalLessons} lessons
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                   <StarIcon className="h-4 w-4 mr-2" />
                   {courseData.difficulty}
                 </div>
@@ -253,11 +234,11 @@ export default function Course() {
 
               {/* Progress Bar */}
               <div className="mb-6">
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-2">
                   <span>Progress</span>
                   <span>{Math.round(courseProgress)}%</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
                   <div 
                     className="bg-primary-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${courseProgress}%` }}
@@ -267,7 +248,7 @@ export default function Course() {
 
               {/* Lesson List */}
               <div className="space-y-2">
-                <h3 className="font-semibold text-gray-900 mb-3">Lessons</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Lessons</h3>
                 {courseData.lessons.map((lesson, index) => (
                   <button
                     key={lesson.id}
@@ -277,7 +258,7 @@ export default function Course() {
                         ? 'bg-primary-100 text-primary-900 border-l-4 border-primary-600'
                         : completedLessons.includes(lesson.id)
                         ? 'bg-success-50 text-success-900'
-                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                        : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -286,7 +267,7 @@ export default function Course() {
                         <CheckCircleIcon className="h-4 w-4 text-success-600" />
                       )}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">{lesson.duration}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{lesson.duration}</div>
                   </button>
                 ))}
               </div>
@@ -299,12 +280,12 @@ export default function Course() {
               key={currentLesson}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-xl shadow-md p-8"
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-8"
             >
               {/* Lesson Header */}
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                     <span className="bg-primary-100 text-primary-800 px-2 py-1 rounded-full text-xs mr-3">
                       Lesson {currentLesson + 1} of {courseData.totalLessons}
                     </span>
@@ -318,24 +299,24 @@ export default function Course() {
                     </div>
                   )}
                 </div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
                   {currentLessonData.title}
                 </h1>
               </div>
 
               {/* Lesson Content */}
               <div className="prose prose-lg max-w-none mb-8">
-                <div className="whitespace-pre-line text-gray-700 leading-relaxed">
-                  {currentLessonData.content}
+                <div className="whitespace-pre-line text-gray-700 dark:text-gray-200 leading-relaxed">
+                  {cleanMarkdown(currentLessonData.content)}
                 </div>
               </div>
 
               {/* Navigation */}
-              <div className="flex justify-between items-center pt-8 border-t border-gray-200">
+              <div className="flex justify-between items-center pt-8 border-t border-gray-200 dark:border-gray-800">
                 <button
                   onClick={goToPreviousLesson}
                   disabled={currentLesson === 0}
-                  className="flex items-center px-6 py-3 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   ← Previous Lesson
                 </button>
