@@ -3,56 +3,41 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
-import { TrophyIcon, ClockIcon, CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
-import { getXPTokenContract, getProvider } from '../utils/contracts';
+import { getQuizQuestions } from '../data/courseContent';
+import { mintXPForQuiz, isCorrectNetwork, switchToEduChain } from '../utils/blockchain';
+import { useAccount, useSigner, useNetwork } from 'wagmi';
+import { TrophyIcon, ClockIcon, CheckCircleIcon, ArrowRightIcon, CurrencyDollarIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 function getQuizData(topicId, languageCode) {
-  const quizzes = {
-    culture: {
-      en: {
-        title: 'Nigerian Culture Quiz',
-        questions: [
-          { question: 'What is the traditional greeting in Yoruba culture?', answers: ['E kaaro', 'Good morning', 'Hello', 'Hi there'], correctAnswer: 0 },
-          { question: 'Which festival celebrates the harvest in Ghana?', answers: ['Homowo', 'Christmas', 'Easter', 'New Year'], correctAnswer: 0 },
-          { question: "What does 'Ubuntu' mean in African philosophy?", answers: ['I am because we are', 'Hello', 'Thank you', 'Goodbye'], correctAnswer: 0 },
-        ],
-      },
-      tw: {
-        title: 'Ghanaian Culture Quiz',
-        questions: [
-          { question: "What is 'Akwaaba' in Twi?", answers: ['Welcome', 'Thank you', 'Goodbye', 'Hello'], correctAnswer: 0 },
-          { question: 'Which dance is from the Ashanti region?', answers: ['Adowa', 'Azonto', 'Kpanlogo', 'All of the above'], correctAnswer: 3 },
-          { question: "What is the meaning of 'Sankofa'?", answers: ['Go back and get it', 'Forward', 'Stay here', 'Move on'], correctAnswer: 0 },
-        ],
-      },
-    },
-    crypto: {
-      en: {
-        title: 'Crypto Basics Quiz',
-        questions: [
-          { question: 'What is blockchain technology?', answers: ['A distributed ledger', 'A type of cryptocurrency', 'A bank account', 'A computer game'], correctAnswer: 0 },
-          { question: 'Which cryptocurrency was created first?', answers: ['Bitcoin', 'Ethereum', 'Litecoin', 'Dogecoin'], correctAnswer: 0 },
-          { question: 'What is DeFi?', answers: ['Decentralized Finance', 'Digital Finance', 'Direct Finance', 'Daily Finance'], correctAnswer: 0 },
-        ],
-      },
-    },
-    food: {
-      en: {
-        title: 'African Cuisine Quiz',
-        questions: [
-          { question: 'What is Jollof rice?', answers: ['A West African rice dish', 'A type of bread', 'A drink', 'A dessert'], correctAnswer: 0 },
-          { question: 'Which country is famous for Injera?', answers: ['Ethiopia', 'Nigeria', 'Ghana', 'Kenya'], correctAnswer: 0 },
-          { question: 'What is Fufu made from?', answers: ['Cassava and plantains', 'Rice', 'Wheat', 'Corn'], correctAnswer: 0 },
-        ],
-      },
-    },
+  const questions = getQuizQuestions(topicId, languageCode);
+  const topicTitles = {
+    culture: 'Cultural Studies Quiz',
+    crypto: 'Crypto & Web3 Quiz', 
+    food: 'African Cuisine Quiz',
+    sports: 'Sports & Fitness Quiz',
+    science: 'Science & Technology Quiz',
+    business: 'Business & Entrepreneurship Quiz',
+    history: 'African History Quiz',
+    arts: 'Arts & Music Quiz'
   };
-  const fallback = { title: `${topicId} Quiz`, questions: [] };
-  return (quizzes[topicId] && quizzes[topicId][languageCode]) || fallback;
+  
+  return {
+    title: topicTitles[topicId] || `${topicId} Quiz`,
+    questions: questions.map(q => ({
+      question: q.question,
+      answers: q.options,
+      correctAnswer: q.correct,
+      explanation: q.explanation
+    }))
+  };
 }
 
 export default function Quiz() {
   const { isDark, setIsDark, navigateToDashboard } = useNavigation();
+  const { address, isConnected } = useAccount();
+  const { data: signer } = useSigner();
+  const { chain } = useNetwork();
+  
   const [meta, setMeta] = useState({ languageCode: 'en', languageName: 'English', topicId: 'culture', topicName: 'Cultural Studies' });
   const [quiz, setQuiz] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -61,6 +46,9 @@ export default function Quiz() {
   const [timeLeft, setTimeLeft] = useState(30);
   const [completed, setCompleted] = useState(false);
   const [xpEarned, setXpEarned] = useState(0);
+  const [minting, setMinting] = useState(false);
+  const [mintResult, setMintResult] = useState(null);
+  const [showNetworkWarning, setShowNetworkWarning] = useState(false);
 
   useEffect(() => {
     try {
@@ -105,21 +93,68 @@ export default function Quiz() {
       const earned = Math.floor((finalScore / (quiz.questions.length * 10)) * 100);
       setXpEarned(earned);
       setCompleted(true);
+      
+      // Check network for on-chain minting
+      if (isConnected && chain) {
+        setShowNetworkWarning(!isCorrectNetwork(chain.id));
+      }
+      
       try {
         const prev = Number(localStorage.getItem('sf_user_xp') || '0');
         localStorage.setItem('sf_user_xp', String(prev + earned));
         const qPrev = Number(localStorage.getItem('sf_quizzes_completed') || '0');
         localStorage.setItem('sf_quizzes_completed', String(qPrev + 1));
-        // Onchain XP mint (testnet): call mint to the user's address if signer has QUIZMASTER_ROLE
-        const provider = getProvider();
-        const signer = await provider.getSigner().catch(() => null);
-        if (signer) {
-          const me = await signer.getAddress();
-          const xp = getXPTokenContract(signer);
-          const amount = BigInt(earned) * (10n ** 18n);
-          try { await (await xp.mint(me, amount, `Quiz ${meta.topicName}`)).wait(); } catch {}
-        }
       } catch {}
+    }
+  };
+
+  const handleMintXP = async () => {
+    if (!isConnected || !signer || !address) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
+    if (!isCorrectNetwork(chain?.id)) {
+      try {
+        await switchToEduChain();
+        // Wait a moment for network switch
+        setTimeout(() => {
+          setShowNetworkWarning(false);
+          handleMintXP(); // Retry after network switch
+        }, 1000);
+        return;
+      } catch (error) {
+        alert('Please switch to EduChain Testnet to mint XP');
+        return;
+      }
+    }
+
+    setMinting(true);
+    try {
+      const quizDetails = {
+        topic: meta.topicName,
+        language: meta.languageName,
+        score: score,
+        questionsTotal: quiz.questions.length
+      };
+
+      const result = await mintXPForQuiz(signer, address, xpEarned, quizDetails);
+      setMintResult(result);
+
+      if (result.success) {
+        // Update local storage with on-chain confirmation
+        try {
+          localStorage.setItem('sf_last_mint_tx', result.txHash);
+          localStorage.setItem('sf_onchain_xp', String(Number(localStorage.getItem('sf_onchain_xp') || '0') + xpEarned));
+        } catch {}
+      }
+    } catch (error) {
+      setMintResult({
+        success: false,
+        error: error.message || 'Failed to mint XP'
+      });
+    } finally {
+      setMinting(false);
     }
   };
 
@@ -174,10 +209,125 @@ export default function Quiz() {
             <div className="mb-8">
               <CheckCircleIcon className="h-16 w-16 text-success-600 mx-auto mb-4" />
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Quiz Completed!</h2>
-              <p className="text-gray-600 dark:text-gray-300 mb-6">Great job! You earned {xpEarned} XP.</p>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                Great job! You scored {score}/{quiz?.questions.length * 10} and earned {xpEarned} XP.
+              </p>
             </div>
-            <div className="space-y-4">
-              <button onClick={navigateToDashboard} className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700">Go to Dashboard</button>
+
+            {/* Network Warning */}
+            {showNetworkWarning && isConnected && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 bg-orange-100 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg"
+              >
+                <div className="flex items-center justify-center mb-2">
+                  <ExclamationTriangleIcon className="h-5 w-5 text-orange-600 mr-2" />
+                  <span className="text-orange-800 dark:text-orange-200 font-medium">Wrong Network</span>
+                </div>
+                <p className="text-sm text-orange-700 dark:text-orange-300 mb-3">
+                  Switch to EduChain Testnet to mint your XP tokens on-chain
+                </p>
+                <button 
+                  onClick={() => switchToEduChain().then(() => setShowNetworkWarning(false)).catch(() => {})}
+                  className="bg-orange-600 text-white px-4 py-2 rounded text-sm hover:bg-orange-700"
+                >
+                  Switch Network
+                </button>
+              </motion.div>
+            )}
+
+            {/* On-chain Minting Section */}
+            {isConnected && !showNetworkWarning && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-6 bg-gradient-to-r from-primary-50 to-secondary-50 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-primary-200 dark:border-gray-600"
+              >
+                <div className="flex items-center justify-center mb-4">
+                  <CurrencyDollarIcon className="h-8 w-8 text-primary-600 mr-2" />
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">Mint XP On-Chain</h3>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                  Mint your {xpEarned} XP tokens directly to your wallet on EduChain Testnet
+                </p>
+                
+                {!mintResult ? (
+                  <button
+                    onClick={handleMintXP}
+                    disabled={minting}
+                    className="bg-gradient-to-r from-primary-600 to-secondary-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-primary-700 hover:to-secondary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {minting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Minting XP...
+                      </>
+                    ) : (
+                      <>
+                        <CurrencyDollarIcon className="h-5 w-5 mr-2" />
+                        Mint {xpEarned} XP Tokens
+                      </>
+                    )}
+                  </button>
+                ) : mintResult.success ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-center text-green-600">
+                      <CheckCircleIcon className="h-6 w-6 mr-2" />
+                      <span className="font-medium">XP Tokens Minted Successfully!</span>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 p-3 rounded border text-xs">
+                      <p className="text-gray-600 dark:text-gray-300 mb-1">Transaction Hash:</p>
+                      <p className="font-mono text-gray-900 dark:text-white break-all">{mintResult.txHash}</p>
+                    </div>
+                    <a 
+                      href={`https://opencampus-codex.blockscout.com/tx/${mintResult.txHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
+                    >
+                      View on Explorer
+                    </a>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-center text-red-600">
+                      <ExclamationTriangleIcon className="h-6 w-6 mr-2" />
+                      <span className="font-medium">Minting Failed</span>
+                    </div>
+                    <p className="text-sm text-red-600">{mintResult.error}</p>
+                    <button
+                      onClick={handleMintXP}
+                      className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              {!isConnected && (
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg mb-4">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    💡 Connect your wallet to mint XP tokens on EduChain Testnet
+                  </p>
+                </div>
+              )}
+              <button 
+                onClick={navigateToDashboard} 
+                className="w-full bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700"
+              >
+                Go to Dashboard
+              </button>
+              <button 
+                onClick={() => window.location.href = '/learn'} 
+                className="w-full bg-secondary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-secondary-700"
+              >
+                Take Another Quiz
+              </button>
             </div>
           </motion.div>
         )}

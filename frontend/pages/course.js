@@ -3,12 +3,19 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
+import { courseContent } from '../data/courseContent';
+import { mintSkillNFT, isCorrectNetwork, switchToEduChain } from '../utils/blockchain';
+import { useAccount, useSigner, useNetwork } from 'wagmi';
 import { 
   BookOpenIcon,
   CheckCircleIcon,
   ArrowRightIcon,
   ClockIcon,
-  StarIcon
+  StarIcon,
+  TrophyIcon,
+  CurrencyDollarIcon,
+  ExclamationTriangleIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 
 function cleanMarkdown(text) {
@@ -18,156 +25,95 @@ function cleanMarkdown(text) {
 
 export default function Course() {
   const { navigateToLearn, navigateToDashboard, isDark, setIsDark } = useNavigation();
+  const { address, isConnected } = useAccount();
+  const { data: signer } = useSigner();
+  const { chain } = useNetwork();
+  
   const [currentLesson, setCurrentLesson] = useState(0);
   const [completedLessons, setCompletedLessons] = useState([]);
   const [courseProgress, setCourseProgress] = useState(0);
-  const [courseMeta, setCourseMeta] = useState({ languageName: '', topicName: '' });
+  const [courseMeta, setCourseMeta] = useState({ languageName: '', topicName: '', topicId: '', languageCode: '' });
+  const [courseData, setCourseData] = useState(null);
+  const [showNFTMinting, setShowNFTMinting] = useState(false);
+  const [mintingNFT, setMintingNFT] = useState(false);
+  const [nftMintResult, setNFTMintResult] = useState(null);
+  const [showNetworkWarning, setShowNetworkWarning] = useState(false);
 
-  // Mock course data - would come from API
-  // Build course content dynamically based on selected topic
-  const selectedTopicId = typeof window !== 'undefined' ? (localStorage.getItem('sf_selected_topic_id') || 'culture') : 'culture';
-  const topicTitleMap = { culture: 'African Culture & Traditions', food: 'African Cuisine', sports: 'Sports & Fitness', crypto: 'Crypto & Web3', science: 'Science & Tech', business: 'Business & Entrepreneurship', history: 'African History', arts: 'Arts & Music' };
-  const courseData = {
-    title: topicTitleMap[selectedTopicId] || 'Course',
-    language: "",
-    topic: selectedTopicId,
-    description: "Learn about the rich cultural heritage of Ghana, including traditions, festivals, and social customs.",
-    totalLessons: 5,
-    estimatedTime: "45 minutes",
-    difficulty: "Beginner",
-    lessons: [
-      { id: 1, title: "Introduction to Ghanaian Culture", content: `Ghana is a West African country with a rich cultural heritage spanning over 1000 years. The country is home to over 100 ethnic groups, each with their unique traditions, languages, and customs.
-
-**Key Cultural Elements:**
-• **Languages**: Over 80 languages spoken, with Twi, Ga, Ewe, and Dagbani being major ones
-• **Traditional Clothing**: Kente cloth is the most famous, symbolizing royalty and honor
-• **Music & Dance**: Traditional drumming, Adowa dance, and modern Highlife music
-• **Social Structure**: Emphasis on community, respect for elders, and extended family
-
-**Important Values:**
-- Ubuntu philosophy: "I am because we are"
-- Respect for ancestors and tradition
-- Hospitality and community support
-- Oral tradition and storytelling`, duration: "8 minutes", type: "text" },
-      { id: 2, title: selectedTopicId === 'food' ? 'Staple Dishes Across Africa' : "Traditional Festivals", content: selectedTopicId === 'food' ? `Explore staple dishes like Jollof, Fufu, Injera, and Kelewele across regions, their ingredients, and cultural context.
-
-Nutrition & Culture:
-- Communal eating traditions
-- Seasonal ingredients and sustainability
-- Health perspectives and modern twists` : `Ghanaian festivals are vibrant celebrations that connect communities to their ancestral heritage and agricultural cycles.
-
-**Major Festivals:**
-
-**Homowo Festival (Ga People)**
-- Meaning: "Hooting at hunger"
-- Celebrates successful harvest
-- Features traditional dancing and sprinkling of kpokpoi (special food)
-
-**Aboakyir Festival (Effutu People)**
-- Annual deer hunting festival
-- Demonstrates bravery and community unity
-- Held in Winneba during April/May
-
-**Yam Festival (Northern Regions)**
-- Celebrates the yam harvest
-- Gives thanks to gods and ancestors
-- Features traditional drumming and dancing
-
-**Cultural Significance:**
-- Strengthens community bonds
-- Preserves oral traditions
-- Educates younger generations
-- Attracts tourism and economic benefits`, duration: "10 minutes", type: "text" },
-      { id: 3, title: selectedTopicId === 'sports' ? 'Sports in African Communities' : "Traditional Greetings & Social Customs", content: selectedTopicId === 'sports' ? `A look at football, athletics, and community fitness practices.
-
-Highlights:
-- Football as a unifier
-- Local games and their values
-- Role of sports in youth development` : `Understanding Ghanaian greetings and social customs is essential for respectful cultural interaction.
-
-**Common Greetings in Twi:**
-- "Akwaaba" - Welcome
-- "Wo ho te sɛn?" - How are you?
-- "Ɛyɛ" - I'm fine
-- "Me da wo ase" - Thank you
-
-**Social Customs:**
-- **Respect for Elders**: Always greet elders first, use both hands when receiving items
-- **Community Meals**: Sharing food is a sign of unity and hospitality
-- **Gift Giving**: Bringing small gifts when visiting is customary
-- **Religious Respect**: Ghana is religious (Christian, Muslim, Traditional) - respect all beliefs
-
-**Taboos to Avoid:**
-- Pointing with left hand
-- Stepping over someone lying down
-- Wearing shoes in certain traditional spaces
-- Refusing offered food or drink without polite explanation`, duration: "7 minutes", type: "text" },
-      { id: 4, title: "Traditional Arts & Crafts", content: `Ghanaian arts and crafts reflect the country's rich cultural diversity and skilled craftsmanship.
-
-**Kente Cloth:**
-- Hand-woven by master weavers
-- Each pattern has symbolic meaning
-- Originally worn by royalty
-- Colors represent different values (gold=wealth, green=growth, red=sacrifice)
-
-**Wood Carving:**
-- Akan stools represent spiritual connection
-- Masks used in traditional ceremonies
-- Fertility dolls (Akuaba) for blessing children
-
-**Pottery & Ceramics:**
-- Traditional water vessels and cooking pots
-- Decorative items for ceremonies
-- Skills passed down through generations
-
-**Beadmaking:**
-- Krobo beads are world-famous
-- Each color and pattern has meaning
-- Used for ceremonies and decoration
-
-**Modern Applications:**
-- Tourism and export industries
-- Fashion and interior design
-- Cultural education and preservation`, duration: "12 minutes", type: "text" },
-      { id: 5, title: "Food Culture & Culinary Traditions", content: `Ghanaian cuisine reflects the country's agricultural abundance and cultural diversity.
-
-**Staple Foods:**
-- **Rice**: Often served with stews and sauces
-- **Yam, Plantain, Cassava**: Root vegetables forming meal foundations
-- **Maize**: Used for kenkey and banku
-
-**Popular Dishes:**
-- **Jollof Rice**: Spiced rice dish (friendly rivalry with Nigeria!)
-- **Fufu**: Pounded cassava/plantain served with soup
-- **Kelewele**: Spiced fried plantains
-- **Banku**: Fermented corn and cassava dough
-
-**Cultural Significance:**
-- **Communal Eating**: Sharing from one bowl strengthens bonds
-- **Hospitality**: Offering food to guests is mandatory
-- **Ceremonial Foods**: Special dishes for festivals and celebrations
-- **Seasonal Eating**: Diet follows agricultural seasons
-
-**Cooking Methods:**
-- Open fire cooking in rural areas
-- Palm oil as primary cooking fat
-- Extensive use of spices and peppers
-- Preservation through drying and smoking`, duration: "8 minutes", type: "text" }
-    ]
-  };
-
-  useEffect(() => {
-    const progress = (completedLessons.length / courseData.totalLessons) * 100;
-    setCourseProgress(progress);
-  }, [completedLessons]);
-
+  // Load course data based on selected topic and language
   useEffect(() => {
     try {
-      const langName = localStorage.getItem('sf_selected_language_name') || ''
-      const topicName = localStorage.getItem('sf_selected_topic_name') || ''
-      setCourseMeta({ languageName: langName, topicName })
-    } catch {}
-  }, [])
+      const langCode = localStorage.getItem('sf_selected_language_code') || 'en';
+      const langName = localStorage.getItem('sf_selected_language_name') || 'English';
+      const topicId = localStorage.getItem('sf_selected_topic_id') || 'culture';
+      const topicName = localStorage.getItem('sf_selected_topic_name') || 'Cultural Studies';
+      
+      setCourseMeta({ 
+        languageName: langName, 
+        topicName: topicName,
+        topicId: topicId,
+        languageCode: langCode
+      });
+
+      // Get course content for this topic and language
+      const content = courseContent[topicId];
+      if (content) {
+        const languageContent = content[langCode] || content['en']; // Fallback to English
+        if (languageContent) {
+          setCourseData({
+            title: languageContent.title,
+            language: langName,
+            topic: topicName,
+            description: languageContent.description,
+            totalLessons: languageContent.lessons.length,
+            estimatedTime: `${languageContent.lessons.length * 8} minutes`,
+            difficulty: "Beginner",
+            lessons: languageContent.lessons
+          });
+        }
+      }
+      
+      // If no content found, set default
+      if (!courseData) {
+        setCourseData({
+          title: "Course Content Loading...",
+          language: langName,
+          topic: topicName,
+          description: "Loading course content...",
+          totalLessons: 1,
+          estimatedTime: "5 minutes",
+          difficulty: "Beginner",
+          lessons: [{
+            id: 1,
+            title: "Content Loading",
+            content: "Course content is being loaded. Please check your topic and language selection.",
+            duration: "1 minute",
+        type: "text"
+          }]
+        });
+      }
+    } catch (error) {
+      console.error('Error loading course data:', error);
+    }
+  }, []);
+
+    useEffect(() => {
+    if (courseData) {
+      const progress = (completedLessons.length / courseData.totalLessons) * 100;
+      setCourseProgress(progress);
+      
+      // Check if course is 100% completed for NFT minting
+      if (progress === 100 && !showNFTMinting && !nftMintResult) {
+        setShowNFTMinting(true);
+        
+        // Check network for NFT minting
+        if (isConnected && chain) {
+          setShowNetworkWarning(!isCorrectNetwork(chain.id));
+        }
+      }
+    }
+  }, [completedLessons, courseData, isConnected, chain]);
+
+
 
   const markLessonComplete = (lessonId) => {
     if (!completedLessons.includes(lessonId)) {
@@ -176,7 +122,7 @@ Highlights:
   };
 
   const goToNextLesson = () => {
-    if (currentLesson < courseData.lessons.length - 1) {
+    if (courseData && currentLesson < courseData.lessons.length - 1) {
       markLessonComplete(courseData.lessons[currentLesson].id);
       setCurrentLesson(currentLesson + 1);
     }
@@ -188,12 +134,101 @@ Highlights:
     }
   };
 
-  const goToQuiz = () => {
-    markLessonComplete(courseData.lessons[currentLesson].id);
-    window.location.href = '/quiz';
+    const goToQuiz = () => {
+    if (courseData) {
+      markLessonComplete(courseData.lessons[currentLesson].id);
+      
+      // Store topic and language for quiz
+      try {
+        localStorage.setItem('sf_quiz_topic_id', courseMeta.topicId);
+        localStorage.setItem('sf_quiz_language_code', courseMeta.languageCode);
+      } catch {}
+      
+      window.location.href = '/quiz';
+    }
   };
 
-  const currentLessonData = courseData.lessons[currentLesson];
+  const handleMintSkillNFT = async () => {
+    if (!isConnected || !signer || !address) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
+    if (!isCorrectNetwork(chain?.id)) {
+      try {
+        await switchToEduChain();
+        // Wait a moment for network switch
+        setTimeout(() => {
+          setShowNetworkWarning(false);
+          handleMintSkillNFT(); // Retry after network switch
+        }, 1000);
+        return;
+      } catch (error) {
+        alert('Please switch to EduChain Testnet to mint your Skill NFT');
+        return;
+      }
+    }
+
+    setMintingNFT(true);
+    try {
+      const skillDetails = {
+        skill: `${courseMeta.topicName} Expert`,
+        level: "Proficient",
+        topic: courseMeta.topicName,
+        language: courseMeta.languageName,
+        completionPercentage: 100
+      };
+
+      const result = await mintSkillNFT(signer, address, skillDetails);
+      setNFTMintResult(result);
+
+      if (result.success) {
+        // Update local storage with NFT data
+        try {
+          const nftData = {
+            tokenId: result.tokenId,
+            skill: skillDetails.skill,
+            level: skillDetails.level,
+            topic: courseMeta.topicName,
+            language: courseMeta.languageName,
+            mintedAt: new Date().toISOString(),
+            txHash: result.txHash
+          };
+          
+          const existingNFTs = JSON.parse(localStorage.getItem('sf_skill_nfts') || '[]');
+          existingNFTs.push(nftData);
+          localStorage.setItem('sf_skill_nfts', JSON.stringify(existingNFTs));
+        } catch {}
+      }
+    } catch (error) {
+      setNFTMintResult({
+        success: false,
+        error: error.message || 'Failed to mint Skill NFT'
+      });
+    } finally {
+      setMintingNFT(false);
+    }
+  };
+
+  const currentLessonData = courseData ? courseData.lessons[currentLesson] : null;
+
+  // Show loading state if course data is not loaded yet
+  if (!courseData || !currentLessonData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
+        <Head>
+          <title>Loading Course - ScholarForge</title>
+        </Head>
+        <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-8">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Loading Course Content...</h1>
+            <p className="text-gray-600 dark:text-gray-300">Please wait while we load your course material.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
@@ -215,7 +250,7 @@ Highlights:
             >
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{courseMeta.topicName || courseData.title}</h2>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Language: {courseMeta.languageName || courseData.language}</p>
-
+              
               {/* Course Info */}
               <div className="space-y-3 mb-6">
                 <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
@@ -351,6 +386,155 @@ Highlights:
             </motion.div>
           </div>
         </div>
+
+        {/* NFT Minting Modal */}
+        {showNFTMinting && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl p-8 max-w-md w-full"
+            >
+              <div className="text-center">
+                <div className="mb-6">
+                  <TrophyIcon className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    Course Completed! 🎉
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    You've completed 100% of {courseMeta.topicName}. Mint your Skill NFT to prove your expertise!
+                  </p>
+                </div>
+
+                {/* Network Warning */}
+                {showNetworkWarning && isConnected && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-6 p-4 bg-orange-100 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg"
+                  >
+                    <div className="flex items-center justify-center mb-2">
+                      <ExclamationTriangleIcon className="h-5 w-5 text-orange-600 mr-2" />
+                      <span className="text-orange-800 dark:text-orange-200 font-medium">Wrong Network</span>
+                    </div>
+                    <p className="text-sm text-orange-700 dark:text-orange-300 mb-3">
+                      Switch to EduChain Testnet to mint your Skill NFT
+                    </p>
+                    <button 
+                      onClick={() => switchToEduChain().then(() => setShowNetworkWarning(false)).catch(() => {})}
+                      className="bg-orange-600 text-white px-4 py-2 rounded text-sm hover:bg-orange-700"
+                    >
+                      Switch Network
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* NFT Minting Section */}
+                {isConnected && !showNetworkWarning && (
+                  <div className="mb-6 p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-purple-200 dark:border-gray-600">
+                    <div className="flex items-center justify-center mb-4">
+                      <SparklesIcon className="h-8 w-8 text-purple-600 mr-2" />
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">Mint Skill NFT</h3>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded border mb-4">
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-2">NFT Details:</h4>
+                      <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                        <p><strong>Skill:</strong> {courseMeta.topicName} Expert</p>
+                        <p><strong>Level:</strong> Proficient</p>
+                        <p><strong>Language:</strong> {courseMeta.languageName}</p>
+                        <p><strong>Completion:</strong> 100%</p>
+                      </div>
+                    </div>
+                    
+                    {!nftMintResult ? (
+                      <button
+                        onClick={handleMintSkillNFT}
+                        disabled={mintingNFT}
+                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                      >
+                        {mintingNFT ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Minting NFT...
+                          </>
+                        ) : (
+                          <>
+                            <TrophyIcon className="h-5 w-5 mr-2" />
+                            Mint Skill NFT
+                          </>
+                        )}
+                      </button>
+                    ) : nftMintResult.success ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-center text-green-600">
+                          <CheckCircleIcon className="h-6 w-6 mr-2" />
+                          <span className="font-medium">Skill NFT Minted Successfully!</span>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded border text-xs">
+                          <p className="text-gray-600 dark:text-gray-300 mb-1">Transaction Hash:</p>
+                          <p className="font-mono text-gray-900 dark:text-white break-all">{nftMintResult.txHash}</p>
+                          {nftMintResult.tokenId && (
+                            <p className="text-gray-600 dark:text-gray-300 mt-2 mb-1">Token ID: {nftMintResult.tokenId}</p>
+                          )}
+                        </div>
+                        <a 
+                          href={`https://opencampus-codex.blockscout.com/tx/${nftMintResult.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
+                        >
+                          View on Explorer
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-center text-red-600">
+                          <ExclamationTriangleIcon className="h-6 w-6 mr-2" />
+                          <span className="font-medium">Minting Failed</span>
+                        </div>
+                        <p className="text-sm text-red-600">{nftMintResult.error}</p>
+                        <button
+                          onClick={handleMintSkillNFT}
+                          className="bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700"
+                        >
+                          Try Again
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!isConnected && (
+                  <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      💡 Connect your wallet to mint your Skill NFT on EduChain Testnet
+                    </p>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setShowNFTMinting(false)}
+                    className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={navigateToDashboard}
+                    className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700"
+                  >
+                    Dashboard
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </div>
     </div>
   );

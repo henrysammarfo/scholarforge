@@ -34,12 +34,16 @@ export default function Dashboard() {
   };
 
   const [user, setUser] = useState(baseUser);
+  const [skillNFTs, setSkillNFTs] = useState([]);
 
   useEffect(() => {
     try {
       const xp = Number(localStorage.getItem('sf_user_xp') || `${baseUser.xp}`);
       const quizzesCompleted = Number(localStorage.getItem('sf_quizzes_completed') || `${baseUser.quizzesCompleted}`);
+      const nfts = JSON.parse(localStorage.getItem('sf_skill_nfts') || '[]');
+      
       setUser((u) => ({ ...u, xp, quizzesCompleted }));
+      setSkillNFTs(nfts);
     } catch {}
   }, []);
 
@@ -271,7 +275,57 @@ export default function Dashboard() {
             className="space-y-8"
           >
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Your NFTs</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Your Skill NFTs</h2>
+              
+              {skillNFTs.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {skillNFTs.map((nft, index) => (
+                    <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-800 dark:to-gray-700">
+                      <div className="text-center">
+                        <div className="text-4xl mb-3">🏆</div>
+                        <h3 className="font-bold text-gray-900 dark:text-white mb-2">{nft.skill}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{nft.topic} • {nft.language}</p>
+                        <span className="inline-block bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 text-xs px-2 py-1 rounded-full mb-3">
+                          {nft.level}
+                        </span>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                          <p>Minted: {new Date(nft.mintedAt).toLocaleDateString()}</p>
+                          {nft.tokenId && <p>Token ID: {nft.tokenId}</p>}
+                        </div>
+                        {nft.txHash && (
+                          <a 
+                            href={`https://opencampus-codex.blockscout.com/tx/${nft.txHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block mt-3 text-blue-600 hover:text-blue-700 text-xs"
+                          >
+                            View on Explorer ↗
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <TrophyIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Skill NFTs Yet</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-6">
+                    Complete courses 100% to earn Skill NFTs that prove your expertise!
+                  </p>
+                  <button 
+                    onClick={() => window.location.href = '/learn'}
+                    className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700"
+                  >
+                    Start Learning
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Mock NFTs for Demo */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Achievement NFTs (Demo)</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {nfts.map((nft) => (
                   <div key={nft.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">

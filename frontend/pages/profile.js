@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { 
   AcademicCapIcon, 
   UserIcon,
@@ -15,12 +16,23 @@ import {
   CheckCircleIcon,
   PencilIcon,
   ShareIcon,
-  CalendarIcon
+  CalendarIcon,
+  WalletIcon,
+  PhotoIcon,
+  LinkIcon,
+  ShieldCheckIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 export default function Profile() {
   const { navigateHome, navigateToDashboard, isDark, setIsDark } = useNavigation();
   const [isEditing, setIsEditing] = useState(false);
+  const [showConnections, setShowConnections] = useState(false);
+  const fileInputRef = useRef(null);
+  const { address, isConnected } = useAccount();
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
+  
   const [profileData, setProfileData] = useState({
     name: "Kwame Asante",
     username: "kwame_scholar",
@@ -29,8 +41,80 @@ export default function Profile() {
     location: "Accra, Ghana",
     website: "https://kwamescholar.com",
     avatar: "🇬🇭",
-    joinedDate: "January 2024"
+    profileImage: null,
+    joinedDate: "January 2024",
+    connections: {
+      wallet: isConnected ? address : null,
+      google: null,
+      twitter: null,
+      linkedin: null,
+      github: null
+    }
   });
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfileData({
+          ...profileData,
+          profileImage: e.target.result
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleConnectWallet = async () => {
+    if (!isConnected && connectors.length > 0) {
+      try {
+        await connect({ connector: connectors[0] });
+        setProfileData({
+          ...profileData,
+          connections: {
+            ...profileData.connections,
+            wallet: address
+          }
+        });
+      } catch (error) {
+        console.error('Failed to connect wallet:', error);
+      }
+    }
+  };
+
+  const handleDisconnectWallet = () => {
+    disconnect();
+    setProfileData({
+      ...profileData,
+      connections: {
+        ...profileData.connections,
+        wallet: null
+      }
+    });
+  };
+
+  const handleSocialConnect = (platform) => {
+    // Mock social connection - in production, integrate with OAuth providers
+    alert(`Connecting to ${platform}... (Demo - Integration needed)`);
+    setProfileData({
+      ...profileData,
+      connections: {
+        ...profileData.connections,
+        [platform]: `@${profileData.username}`
+      }
+    });
+  };
+
+  const handleSocialDisconnect = (platform) => {
+    setProfileData({
+      ...profileData,
+      connections: {
+        ...profileData.connections,
+        [platform]: null
+      }
+    });
+  };
 
   const stats = {
     totalXP: 8500,
@@ -79,7 +163,36 @@ export default function Profile() {
               animate={{ opacity: 1, y: 0 }}
               className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 text-center"
             >
-              <div className="text-6xl mb-4">{profileData.avatar}</div>
+              {/* Profile Picture */}
+              <div className="relative mb-4">
+                <div className="w-24 h-24 mx-auto rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  {profileData.profileImage ? (
+                    <img 
+                      src={profileData.profileImage} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-4xl">{profileData.avatar}</span>
+                  )}
+                </div>
+                {isEditing && (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute bottom-0 right-1/2 transform translate-x-1/2 translate-y-1/2 bg-primary-600 text-white p-2 rounded-full shadow-lg hover:bg-primary-700"
+                  >
+                    <PhotoIcon className="h-4 w-4" />
+                  </button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </div>
+
               {isEditing ? (
                 <div className="space-y-3">
                   <input
@@ -87,18 +200,42 @@ export default function Profile() {
                     value={profileData.name}
                     onChange={(e) => setProfileData({...profileData, name: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    placeholder="Full name"
                   />
                   <input
                     type="text"
                     value={profileData.username}
                     onChange={(e) => setProfileData({...profileData, username: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    placeholder="Username"
+                  />
+                  <input
+                    type="email"
+                    value={profileData.email}
+                    onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    placeholder="Email address"
+                  />
+                  <input
+                    type="text"
+                    value={profileData.location}
+                    onChange={(e) => setProfileData({...profileData, location: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    placeholder="Location"
+                  />
+                  <input
+                    type="url"
+                    value={profileData.website}
+                    onChange={(e) => setProfileData({...profileData, website: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    placeholder="Website URL"
                   />
                 </div>
               ) : (
                 <>
                   <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{profileData.name}</h1>
                   <p className="text-gray-600 dark:text-gray-300 mb-1">@{profileData.username}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{profileData.email}</p>
                 </>
               )}
               
@@ -116,6 +253,14 @@ export default function Profile() {
                   <CalendarIcon className="h-4 w-4 mr-2" />
                   Joined {profileData.joinedDate}
                 </div>
+                {profileData.website && (
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                    <LinkIcon className="h-4 w-4 mr-2" />
+                    <a href={profileData.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700">
+                      Website
+                    </a>
+                  </div>
+                )}
               </div>
 
               {isEditing ? (
@@ -130,10 +275,19 @@ export default function Profile() {
                 <p className="text-gray-700 dark:text-gray-300 text-sm mt-4">{profileData.bio}</p>
               )}
 
-              <button className="w-full mt-4 bg-secondary-600 text-white py-2 px-4 rounded-lg hover:bg-secondary-700 transition-colors flex items-center justify-center">
-                <ShareIcon className="h-4 w-4 mr-2" />
-                Share Profile
-              </button>
+              <div className="mt-4 space-y-2">
+                <button 
+                  onClick={() => setShowConnections(!showConnections)}
+                  className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center"
+                >
+                  <LinkIcon className="h-4 w-4 mr-2" />
+                  Manage Connections
+                </button>
+                <button className="w-full bg-secondary-600 text-white py-2 px-4 rounded-lg hover:bg-secondary-700 transition-colors flex items-center justify-center">
+                  <ShareIcon className="h-4 w-4 mr-2" />
+                  Share Profile
+                </button>
+              </div>
             </motion.div>
 
             {/* Quick Stats */}
@@ -163,6 +317,186 @@ export default function Profile() {
                 </div>
               </div>
             </motion.div>
+
+            {/* Connections Modal */}
+            {showConnections && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mt-6"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Account Connections</h2>
+                  <button 
+                    onClick={() => setShowConnections(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  >
+                    <XMarkIcon className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Wallet Connection */}
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-center">
+                      <WalletIcon className="h-6 w-6 text-primary-600 mr-3" />
+                      <div>
+                        <h3 className="font-medium text-gray-900 dark:text-white">Crypto Wallet</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {isConnected ? `${address?.slice(0, 6)}...${address?.slice(-4)}` : 'Not connected'}
+                        </p>
+                      </div>
+                    </div>
+                    {isConnected ? (
+                      <button 
+                        onClick={handleDisconnectWallet}
+                        className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                      >
+                        Disconnect
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={handleConnectWallet}
+                        className="bg-primary-600 text-white px-3 py-1 rounded text-sm hover:bg-primary-700"
+                      >
+                        Connect
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Google Connection */}
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="w-6 h-6 mr-3 flex items-center justify-center">
+                        <span className="text-lg">🔍</span>
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900 dark:text-white">Google Account</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {profileData.connections.google || 'Not connected'}
+                        </p>
+                      </div>
+                    </div>
+                    {profileData.connections.google ? (
+                      <button 
+                        onClick={() => handleSocialDisconnect('google')}
+                        className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                      >
+                        Disconnect
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => handleSocialConnect('google')}
+                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                      >
+                        Connect
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Twitter/X Connection */}
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="w-6 h-6 mr-3 flex items-center justify-center">
+                        <span className="text-lg">𝕏</span>
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900 dark:text-white">X (Twitter)</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {profileData.connections.twitter || 'Not connected'}
+                        </p>
+                      </div>
+                    </div>
+                    {profileData.connections.twitter ? (
+                      <button 
+                        onClick={() => handleSocialDisconnect('twitter')}
+                        className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                      >
+                        Disconnect
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => handleSocialConnect('twitter')}
+                        className="bg-blue-400 text-white px-3 py-1 rounded text-sm hover:bg-blue-500"
+                      >
+                        Connect
+                      </button>
+                    )}
+                  </div>
+
+                  {/* LinkedIn Connection */}
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="w-6 h-6 mr-3 flex items-center justify-center">
+                        <span className="text-lg">💼</span>
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900 dark:text-white">LinkedIn</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {profileData.connections.linkedin || 'Not connected'}
+                        </p>
+                      </div>
+                    </div>
+                    {profileData.connections.linkedin ? (
+                      <button 
+                        onClick={() => handleSocialDisconnect('linkedin')}
+                        className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                      >
+                        Disconnect
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => handleSocialConnect('linkedin')}
+                        className="bg-blue-700 text-white px-3 py-1 rounded text-sm hover:bg-blue-800"
+                      >
+                        Connect
+                      </button>
+                    )}
+                  </div>
+
+                  {/* GitHub Connection */}
+                  <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="flex items-center">
+                      <div className="w-6 h-6 mr-3 flex items-center justify-center">
+                        <span className="text-lg">🐙</span>
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900 dark:text-white">GitHub</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {profileData.connections.github || 'Not connected'}
+                        </p>
+                      </div>
+                    </div>
+                    {profileData.connections.github ? (
+                      <button 
+                        onClick={() => handleSocialDisconnect('github')}
+                        className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                      >
+                        Disconnect
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => handleSocialConnect('github')}
+                        className="bg-gray-800 text-white px-3 py-1 rounded text-sm hover:bg-gray-900"
+                      >
+                        Connect
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <ShieldCheckIcon className="h-5 w-5 text-blue-600 mr-2" />
+                    <h4 className="font-medium text-blue-900 dark:text-blue-200">Security & Privacy</h4>
+                  </div>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Your connected accounts help verify your identity and enable features like easy login and social sharing. 
+                    You can disconnect any service at any time.
+                  </p>
+                </div>
+              </motion.div>
+            )}
           </div>
 
           {/* Main Content */}

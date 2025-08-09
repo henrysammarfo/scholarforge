@@ -65,23 +65,6 @@ contract SkillNFT is ERC721URIStorage, ERC721Pausable, AccessControl {
     }
 
     /**
-     * @notice Mint a special Language Hero NFT (only QuizMaster)
-     * @param to Recipient address
-     * @param language Language name (e.g., "Twi")
-     * @param tokenURI Metadata URI
-     * @return tokenId The minted token ID
-     */
-    function mintLanguageHero(address to, string calldata language, string calldata tokenURI) external onlyRole(QUIZMASTER_ROLE) whenNotPaused returns (uint256 tokenId) {
-        string memory skill = string(abi.encodePacked("Language Hero: ", language));
-        tokenId = nextTokenId;
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, tokenURI);
-        skillLevel[tokenId] = skill;
-        emit SkillMinted(to, tokenId, skill, tokenURI);
-        nextTokenId++;
-    }
-
-    /**
      * @notice Batch mint Skill NFTs (only QuizMaster)
      * @param recipients Array of recipient addresses
      * @param skills Array of skill names/levels

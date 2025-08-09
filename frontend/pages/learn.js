@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
+import { getTranslation } from '../utils/localization';
 import { 
   TrophyIcon, 
   ClockIcon,
@@ -14,13 +15,12 @@ export default function Learn() {
   const { isDark, setIsDark, navigateToDashboard } = useNavigation();
   const [selectedLanguage, setSelectedLanguage] = useState(null);
   const [selectedTopic, setSelectedTopic] = useState(null);
+  const [currentLangCode, setCurrentLangCode] = useState('en');
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇺🇸', description: 'Global language of opportunity' },
     { code: 'tw', name: 'Twi', flag: '🇬🇭', description: 'Akan language of Ghana' },
     { code: 'yo', name: 'Yoruba', flag: '🇳🇬', description: 'Language of Nigeria' },
-    { code: 'ha', name: 'Hausa', flag: '🇳🇬', description: 'Language of Nigeria' },
-    { code: 'ig', name: 'Igbo', flag: '🇳🇬', description: 'Language of Nigeria' },
     { code: 'sw', name: 'Swahili', flag: '🇰🇪', description: 'East African language' },
     { code: 'fr', name: 'French', flag: '🇫🇷', description: 'West African French' },
     { code: 'es', name: 'Spanish', flag: '🇲🇽', description: 'Latin American Spanish' },
@@ -41,6 +41,7 @@ export default function Learn() {
   const handleLanguageSelect = (language) => {
     setSelectedLanguage(language);
     setSelectedTopic(null);
+    setCurrentLangCode(language.code);
     try {
       localStorage.setItem('sf_selected_language_code', language.code)
       localStorage.setItem('sf_selected_language_name', language.name)
@@ -74,10 +75,10 @@ export default function Learn() {
             className="text-center"
           >
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Choose Your Learning Language
+              {getTranslation('chooseLanguage', currentLangCode)}
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-              Select the language you want to learn in
+              {getTranslation('selectLanguage', currentLangCode)}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {languages.map((language) => (
@@ -111,16 +112,16 @@ export default function Learn() {
                 onClick={() => setSelectedLanguage(null)}
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mb-4"
               >
-                ← Back to Languages
+                {getTranslation('backToLanguages', currentLangCode)}
               </button>
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Choose Your Topic
+                {getTranslation('chooseTopic', currentLangCode)}
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300 mb-2">
-                Learning in <span className="font-semibold text-primary-600">{selectedLanguage.name}</span>
+                {getTranslation('learningIn', currentLangCode)} <span className="font-semibold text-primary-600">{selectedLanguage.name}</span>
               </p>
               <p className="text-gray-600 dark:text-gray-300 mb-8">
-                Select what you want to learn about
+                {getTranslation('selectTopic', currentLangCode)}
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
