@@ -32,9 +32,9 @@ async function demo() {
   console.log("-" .repeat(30));
   
   // Student takes Twi quiz
-  const twiQuizXP = hre.ethers.utils.parseUnits("100", 18);
+  const twiQuizXP = hre.ethers.parseUnits("100", 18);
   await xpToken.connect(quizMaster).mint(student1.address, twiQuizXP, "Twi Quiz completed");
-  console.log("✅ Student earned", hre.ethers.utils.formatUnits(twiQuizXP, 18), "XP for Twi quiz");
+  console.log("✅ Student earned", hre.ethers.formatUnits(twiQuizXP, 18), "XP for Twi quiz");
 
   // Student masters Twi and gets Skill NFT
   await skillNFT.connect(quizMaster).mintSkill(student1.address, "Twi Mastery", "ipfs://twi-skill-1");
@@ -49,12 +49,12 @@ async function demo() {
   console.log("-" .repeat(30));
 
   // Translator earns XP for contributions
-  const contributionXP = hre.ethers.utils.parseUnits("50", 18);
+  const contributionXP = hre.ethers.parseUnits("50", 18);
   await xpToken.connect(quizMaster).mint(translator.address, contributionXP, "Translation contribution");
   console.log("✅ Translator earned", hre.ethers.utils.formatUnits(contributionXP, 18), "XP for translation");
 
   // Student tips translator
-  const tipAmount = hre.ethers.utils.parseUnits("20", 18);
+  const tipAmount = hre.ethers.parseUnits("20", 18);
   await xpToken.connect(student1).tip(translator.address, tipAmount, "Great translation!");
   console.log("✅ Student tipped translator", hre.ethers.utils.formatUnits(tipAmount, 18), "XP");
 
@@ -63,9 +63,9 @@ async function demo() {
   console.log("-" .repeat(30));
 
   // Student takes Yoruba quiz
-  const yorubaQuizXP = hre.ethers.utils.parseUnits("80", 18);
+  const yorubaQuizXP = hre.ethers.parseUnits("80", 18);
   await xpToken.connect(quizMaster).mint(student2.address, yorubaQuizXP, "Yoruba Quiz completed");
-  console.log("✅ Student earned", hre.ethers.utils.formatUnits(yorubaQuizXP, 18), "XP for Yoruba quiz");
+  console.log("✅ Student earned", hre.ethers.formatUnits(yorubaQuizXP, 18), "XP for Yoruba quiz");
 
   // Student masters Yoruba
   await skillNFT.connect(quizMaster).mintSkill(student2.address, "Yoruba Mastery", "ipfs://yoruba-skill-1");
@@ -78,8 +78,8 @@ async function demo() {
   // Batch mint XP to multiple students
   const recipients = [student1.address, student2.address];
   const amounts = [
-    hre.ethers.utils.parseUnits("25", 18),
-    hre.ethers.utils.parseUnits("25", 18)
+    hre.ethers.parseUnits("25", 18),
+    hre.ethers.parseUnits("25", 18)
   ];
   const reasons = ["Participation bonus", "Participation bonus"];
   
@@ -90,12 +90,12 @@ async function demo() {
   console.log("\n📊 Demo 5: Final Statistics");
   console.log("-" .repeat(30));
 
-  console.log("🎓 Total XP in circulation:", hre.ethers.utils.formatUnits(await xpToken.totalSupply(), 18));
+  console.log("🎓 Total XP in circulation:", hre.ethers.formatUnits(await xpToken.totalSupply(), 18));
   console.log("🏆 Total Skill NFTs minted:", await skillNFT.nextTokenId());
   console.log("🌍 Language Heroes:", "Twi (Student 1)");
-  console.log("💰 Student 1 XP balance:", hre.ethers.utils.formatUnits(await xpToken.balanceOf(student1.address), 18));
-  console.log("💰 Student 2 XP balance:", hre.ethers.utils.formatUnits(await xpToken.balanceOf(student2.address), 18));
-  console.log("💰 Translator XP balance:", hre.ethers.utils.formatUnits(await xpToken.balanceOf(translator.address), 18));
+  console.log("💰 Student 1 XP balance:", hre.ethers.formatUnits(await xpToken.balanceOf(student1.address), 18));
+  console.log("💰 Student 2 XP balance:", hre.ethers.formatUnits(await xpToken.balanceOf(student2.address), 18));
+  console.log("💰 Translator XP balance:", hre.ethers.formatUnits(await xpToken.balanceOf(translator.address), 18));
 
   console.log("\n🎉 Demo Complete! ScholarForge is ready for global learning!");
   console.log("\nKey Features Demonstrated:");

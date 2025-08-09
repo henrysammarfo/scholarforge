@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
+import Header from '../components/Header';
 import { useNavigation } from './_app';
 import { 
   AcademicCapIcon, 
@@ -18,7 +19,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function Profile() {
-  const { navigateHome, navigateToDashboard } = useNavigation();
+  const { navigateHome, navigateToDashboard, isDark, setIsDark } = useNavigation();
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
     name: "Kwame Asante",
@@ -60,43 +61,14 @@ export default function Profile() {
     { language: "French", progress: 30, level: "Beginner", flag: "🇫🇷" }
   ];
 
-  const recentActivity = [
-    { type: "quiz", title: "Completed Ghanaian History Quiz", xp: 75, date: "2 hours ago", icon: "📚" },
-    { type: "achievement", title: "Earned Community Helper badge", xp: 100, date: "1 day ago", icon: "🏆" },
-    { type: "course", title: "Finished Traditional Arts course", xp: 150, date: "2 days ago", icon: "🎨" },
-    { type: "quiz", title: "Created Crypto Basics Quiz", xp: 50, date: "3 days ago", icon: "₿" }
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
       <Head>
         <title>Profile - ScholarForge</title>
         <meta name="description" content="Your ScholarForge learning profile and achievements" />
       </Head>
 
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <button onClick={navigateHome}>
-                <AcademicCapIcon className="h-8 w-8 text-primary-600" />
-              </button>
-              <span className="ml-2 text-xl font-bold text-gray-900">ScholarForge</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button onClick={navigateToDashboard} className="text-gray-600 hover:text-gray-900">Dashboard</button>
-              <button 
-                onClick={() => setIsEditing(!isEditing)}
-                className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center"
-              >
-                <PencilIcon className="h-4 w-4 mr-2" />
-                {isEditing ? 'Save' : 'Edit Profile'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -105,7 +77,7 @@ export default function Profile() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-xl shadow-lg p-6 text-center"
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 text-center"
             >
               <div className="text-6xl mb-4">{profileData.avatar}</div>
               {isEditing ? (
@@ -114,33 +86,33 @@ export default function Profile() {
                     type="text"
                     value={profileData.name}
                     onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   />
                   <input
                     type="text"
                     value={profileData.username}
                     onChange={(e) => setProfileData({...profileData, username: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   />
                 </div>
               ) : (
                 <>
-                  <h1 className="text-2xl font-bold text-gray-900 mb-1">{profileData.name}</h1>
-                  <p className="text-gray-600 mb-1">@{profileData.username}</p>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{profileData.name}</h1>
+                  <p className="text-gray-600 dark:text-gray-300 mb-1">@{profileData.username}</p>
                 </>
               )}
               
-              <div className="mt-4 p-3 bg-primary-50 rounded-lg">
+              <div className="mt-4 p-3 bg-primary-50 dark:bg-gray-800 rounded-lg">
                 <div className="text-2xl font-bold text-primary-600">{stats.totalXP.toLocaleString()}</div>
-                <div className="text-sm text-primary-700">Total XP</div>
+                <div className="text-sm text-primary-700 dark:text-primary-300">Total XP</div>
               </div>
 
               <div className="mt-4 text-left space-y-2">
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                   <GlobeAltIcon className="h-4 w-4 mr-2" />
                   {profileData.location}
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                   <CalendarIcon className="h-4 w-4 mr-2" />
                   Joined {profileData.joinedDate}
                 </div>
@@ -151,11 +123,11 @@ export default function Profile() {
                   value={profileData.bio}
                   onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
                   rows={3}
-                  className="w-full mt-4 px-3 py-2 border border-gray-300 rounded-lg"
+                  className="w-full mt-4 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   placeholder="Tell us about yourself..."
                 />
               ) : (
-                <p className="text-gray-700 text-sm mt-4">{profileData.bio}</p>
+                <p className="text-gray-700 dark:text-gray-300 text-sm mt-4">{profileData.bio}</p>
               )}
 
               <button className="w-full mt-4 bg-secondary-600 text-white py-2 px-4 rounded-lg hover:bg-secondary-700 transition-colors flex items-center justify-center">
@@ -169,25 +141,25 @@ export default function Profile() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-white rounded-xl shadow-lg p-6 mt-6"
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mt-6"
             >
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Stats</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Quick Stats</h2>
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <div className="text-xl font-bold text-gray-900">{stats.currentLevel}</div>
-                  <div className="text-sm text-gray-600">Level</div>
+                  <div className="text-xl font-bold text-gray-900 dark:text-white">{stats.currentLevel}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">Level</div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-gray-900">{stats.currentStreak}</div>
-                  <div className="text-sm text-gray-600">Day Streak</div>
+                  <div className="text-xl font-bold text-gray-900 dark:text-white">{stats.currentStreak}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">Day Streak</div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-gray-900">{stats.quizzesCompleted}</div>
-                  <div className="text-sm text-gray-600">Quizzes</div>
+                  <div className="text-xl font-bold text-gray-900 dark:text-white">{stats.quizzesCompleted}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">Quizzes</div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-gray-900">{stats.languagesLearning}</div>
-                  <div className="text-sm text-gray-600">Languages</div>
+                  <div className="text-xl font-bold text-gray-900 dark:text-white">{stats.languagesLearning}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">Languages</div>
                 </div>
               </div>
             </motion.div>
@@ -200,23 +172,32 @@ export default function Profile() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-white rounded-xl shadow-lg p-6"
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6"
             >
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Learning Progress</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Learning Progress</h2>
+                <button 
+                  onClick={() => setIsEditing(!isEditing)}
+                  className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center"
+                >
+                  <PencilIcon className="h-4 w-4 mr-2" />
+                  {isEditing ? 'Save' : 'Edit Profile'}
+                </button>
+              </div>
               <div className="space-y-4">
                 {learningProgress.map((lang, index) => (
-                  <div key={index} className="border-b border-gray-200 pb-4 last:border-b-0">
+                  <div key={index} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center">
                         <span className="text-2xl mr-3">{lang.flag}</span>
                         <div>
-                          <h3 className="font-medium text-gray-900">{lang.language}</h3>
-                          <p className="text-sm text-gray-600">{lang.level}</p>
+                          <h3 className="font-medium text-gray-900 dark:text-white">{lang.language}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">{lang.level}</p>
                         </div>
                       </div>
-                      <span className="text-sm font-medium text-gray-900">{lang.progress}%</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{lang.progress}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
                         className="bg-primary-600 h-2 rounded-full transition-all duration-300"
                         style={{ width: `${lang.progress}%` }}
@@ -232,9 +213,9 @@ export default function Profile() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white rounded-xl shadow-lg p-6"
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6"
             >
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Achievements</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Achievements</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {achievements.map((achievement) => (
                   <div 
@@ -242,16 +223,16 @@ export default function Profile() {
                     className={`p-4 rounded-lg border-2 ${
                       achievement.earned 
                         ? 'border-success-300 bg-success-50' 
-                        : 'border-gray-200 bg-gray-50 opacity-60'
+                        : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800 opacity-80'
                     }`}
                   >
                     <div className="flex items-start">
                       <span className="text-2xl mr-3">{achievement.icon}</span>
                       <div className="flex-1">
-                        <h3 className={`font-medium ${achievement.earned ? 'text-success-900' : 'text-gray-600'}`}>
+                        <h3 className={`font-medium ${achievement.earned ? 'text-success-900' : 'text-gray-600 dark:text-gray-300'}`}>
                           {achievement.title}
                         </h3>
-                        <p className={`text-sm ${achievement.earned ? 'text-success-700' : 'text-gray-500'}`}>
+                        <p className={`text-sm ${achievement.earned ? 'text-success-700' : 'text-gray-500 dark:text-gray-400'}`}>
                           {achievement.description}
                         </p>
                         {achievement.earned && achievement.date && (
@@ -272,17 +253,20 @@ export default function Profile() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-white rounded-xl shadow-lg p-6"
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6"
             >
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Activity</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Recent Activity</h2>
               <div className="space-y-4">
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                {[{ type: "quiz", title: "Completed Ghanaian History Quiz", xp: 75, date: "2 hours ago", icon: "📚" },
+                  { type: "achievement", title: "Earned Community Helper badge", xp: 100, date: "1 day ago", icon: "🏆" },
+                  { type: "course", title: "Finished Traditional Arts course", xp: 150, date: "2 days ago", icon: "🎨" },
+                  { type: "quiz", title: "Created Crypto Basics Quiz", xp: 50, date: "3 days ago", icon: "₿" }].map((activity, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <span className="text-2xl">{activity.icon}</span>
                       <div>
-                        <p className="font-medium text-gray-900">{activity.title}</p>
-                        <p className="text-sm text-gray-600">{activity.date}</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{activity.title}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{activity.date}</p>
                       </div>
                     </div>
                     <div className="text-right">

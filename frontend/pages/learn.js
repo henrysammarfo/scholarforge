@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
+import Header from '../components/Header';
+import { useNavigation } from './_app';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { 
   AcademicCapIcon, 
   TrophyIcon, 
@@ -11,8 +14,10 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function Learn() {
-  const [selectedLanguage, setSelectedLanguage] = useState('');
-  const [selectedTopic, setSelectedTopic] = useState('');
+  const { isDark, setIsDark, isWalletConnected } = useNavigation();
+  const { openConnectModal } = useConnectModal();
+  const [selectedLanguage, setSelectedLanguage] = useState(null);
+  const [selectedTopic, setSelectedTopic] = useState(null);
   const [currentQuiz, setCurrentQuiz] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -43,7 +48,7 @@ export default function Learn() {
   ];
 
   // Sample quiz data based on topic and language
-  const getQuizData = (topic, language) => {
+  const getQuizData = (topicId, languageCode) => {
     const quizzes = {
       'culture': {
         'en': {
@@ -132,8 +137,8 @@ export default function Learn() {
         }
       }
     };
-    
-    return quizzes[topic]?.[language] || quizzes['culture']['en'];
+    const fallback = { title: `${topicId} Quiz`, questions: [] };
+    return (quizzes[topicId] && quizzes[topicId][languageCode]) || fallback;
   };
 
   useEffect(() => {
@@ -152,9 +157,25 @@ export default function Learn() {
     }
   }, [currentQuestion, currentQuiz]);
 
+  if (!isWalletConnected) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
+        <Head>
+          <title>Learn - ScholarForge</title>
+        </Head>
+        <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Connect your wallet to start learning</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">Access courses, quizzes, XP, and NFTs after connecting.</p>
+          <button onClick={() => openConnectModal && openConnectModal()} className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700">Connect Wallet</button>
+        </div>
+      </div>
+    )
+  }
+
   const handleLanguageSelect = (language) => {
     setSelectedLanguage(language);
-    setSelectedTopic('');
+    setSelectedTopic(null);
     setCurrentQuiz(null);
     setCurrentQuestion(0);
     setScore(0);
@@ -165,8 +186,13 @@ export default function Learn() {
 
   const handleTopicSelect = (topic) => {
     setSelectedTopic(topic);
-    // Navigate to course first, then quiz
-    window.location.href = '/course';
+    const quiz = getQuizData(topic.id, selectedLanguage.code);
+    setCurrentQuiz(quiz);
+    setCurrentQuestion(0);
+    setSelectedAnswer(null);
+    setScore(0);
+    setTimeLeft(30);
+    setQuizCompleted(false);
   };
 
   const handleAnswerSelect = (answerIndex) => {
@@ -174,12 +200,13 @@ export default function Learn() {
   };
 
   const handleNextQuestion = () => {
+    if (!currentQuiz) return;
     if (selectedAnswer === currentQuiz.questions[currentQuestion].correctAnswer) {
-      setScore(score + 10);
+      setScore((s) => s + 10);
     }
 
     if (currentQuestion + 1 < currentQuiz.questions.length) {
-      setCurrentQuestion(currentQuestion + 1);
+      setCurrentQuestion((q) => q + 1);
       setSelectedAnswer(null);
       setTimeLeft(30);
     } else {
@@ -194,28 +221,13 @@ export default function Learn() {
   const question = currentQuiz?.questions[currentQuestion];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
       <Head>
         <title>Learn - ScholarForge</title>
         <meta name="description" content="Start learning in your preferred language" />
       </Head>
 
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <AcademicCapIcon className="h-8 w-8 text-primary-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">ScholarForge</span>
-            </div>
-                         <div className="flex items-center space-x-4">
-               <span className="text-sm text-gray-600">XP: 1,250</span>
-               <span className="text-sm text-gray-600">NFTs: 3</span>
-               <button className="text-gray-600 hover:text-gray-900">Dashboard</button>
-             </div>
-          </div>
-        </div>
-      </nav>
+      <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {!selectedLanguage ? (
@@ -225,10 +237,10 @@ export default function Learn() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
               Choose Your Learning Language
             </h1>
-            <p className="text-xl text-gray-600 mb-8">
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
               Select the language you want to learn in
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -238,13 +250,13 @@ export default function Learn() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleLanguageSelect(language)}
-                  className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary-200"
+                  className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary-200"
                 >
                   <div className="text-4xl mb-2">{language.flag}</div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
                     {language.name}
                   </h3>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
                     {language.description}
                   </p>
                 </motion.button>
@@ -260,18 +272,18 @@ export default function Learn() {
           >
             <div className="mb-8">
               <button
-                onClick={() => setSelectedLanguage('')}
-                className="text-gray-600 hover:text-gray-900 mb-4"
+                onClick={() => setSelectedLanguage(null)}
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mb-4"
               >
                 ← Back to Languages
               </button>
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
                 Choose Your Topic
               </h1>
-              <p className="text-xl text-gray-600 mb-2">
+              <p className="text-xl text-gray-600 dark:text-gray-300 mb-2">
                 Learning in <span className="font-semibold text-primary-600">{selectedLanguage.name}</span>
               </p>
-              <p className="text-gray-600 mb-8">
+              <p className="text-gray-600 dark:text-gray-300 mb-8">
                 Select what you want to learn about
               </p>
             </div>
@@ -282,13 +294,13 @@ export default function Learn() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleTopicSelect(topic)}
-                  className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary-200"
+                  className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary-200"
                 >
                   <div className="text-4xl mb-2">{topic.icon}</div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
                     {topic.name}
                   </h3>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
                     {topic.description}
                   </p>
                 </motion.button>
@@ -300,16 +312,16 @@ export default function Learn() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl shadow-lg p-8"
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8"
           >
             {/* Quiz Header */}
             <div className="flex justify-between items-center mb-8">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">{currentQuiz.title}</h2>
-                <p className="text-gray-600">Question {currentQuestion + 1} of {currentQuiz.questions.length}</p>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{currentQuiz.title}</h2>
+                <p className="text-gray-600 dark:text-gray-300">Question {currentQuestion + 1} of {currentQuiz.questions.length}</p>
               </div>
               <div className="flex items-center space-x-4">
-                <div className="flex items-center text-gray-600">
+                <div className="flex items-center text-gray-600 dark:text-gray-300">
                   <ClockIcon className="h-5 w-5 mr-1" />
                   {timeLeft}s
                 </div>
@@ -322,18 +334,18 @@ export default function Learn() {
 
             {/* Question */}
             <div className="mb-8">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">
-                {question.question}
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+                {question?.question}
               </h3>
               <div className="space-y-3">
-                {question.answers.map((answer, index) => (
+                {question?.answers.map((answer, index) => (
                   <button
                     key={index}
                     onClick={() => handleAnswerSelect(index)}
                     className={`w-full p-4 text-left rounded-lg border-2 transition-colors ${
                       selectedAnswer === index
                         ? 'border-primary-600 bg-primary-50 text-primary-900'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600 dark:text-gray-200'
                     }`}
                   >
                     {answer}
@@ -342,14 +354,14 @@ export default function Learn() {
               </div>
             </div>
 
-                         {/* Navigation */}
-             <div className="flex justify-between items-center">
-               <button
-                 onClick={() => setSelectedTopic('')}
-                 className="text-gray-600 hover:text-gray-900"
-               >
-                 ← Back to Topics
-               </button>
+            {/* Navigation */}
+            <div className="flex justify-between items-center">
+              <button
+                onClick={() => { setSelectedTopic(null); setCurrentQuiz(null); }}
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              >
+                ← Back to Topics
+              </button>
               <button
                 onClick={handleNextQuestion}
                 disabled={selectedAnswer === null}
@@ -365,14 +377,14 @@ export default function Learn() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl shadow-lg p-8 text-center"
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 text-center"
           >
             <div className="mb-8">
               <CheckCircleIcon className="h-16 w-16 text-success-600 mx-auto mb-4" />
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                 Quiz Completed!
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
                 Great job! You've completed the {currentQuiz.title} quiz.
               </p>
             </div>
@@ -394,26 +406,26 @@ export default function Learn() {
               </div>
             </div>
 
-                         <div className="space-y-4">
-               <button
-                 onClick={() => setSelectedTopic('')}
-                 className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700"
-               >
-                 Take Another Quiz
-               </button>
-               <button
-                 onClick={() => {
-                   setQuizCompleted(false);
-                   setCurrentQuestion(0);
-                   setScore(0);
-                   setTimeLeft(30);
-                   setSelectedAnswer(null);
-                 }}
-                 className="block w-full text-gray-600 hover:text-gray-900"
-               >
-                 Retry This Quiz
-               </button>
-             </div>
+            <div className="space-y-4">
+              <button
+                onClick={() => { setSelectedTopic(null); setCurrentQuiz(null); setQuizCompleted(false); }}
+                className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700"
+              >
+                Take Another Quiz
+              </button>
+              <button
+                onClick={() => {
+                  setQuizCompleted(false);
+                  setCurrentQuestion(0);
+                  setScore(0);
+                  setTimeLeft(30);
+                  setSelectedAnswer(null);
+                }}
+                className="block w-full text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+              >
+                Retry This Quiz
+              </button>
+            </div>
           </motion.div>
         )}
       </div>
