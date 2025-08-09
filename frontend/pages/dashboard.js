@@ -1,65 +1,80 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
-import { useConnectModal } from '@rainbow-me/rainbowkit';
-import { 
-  AcademicCapIcon, 
-  TrophyIcon, 
-  UserIcon,
-  ChartBarIcon,
-  CogIcon,
-  BookOpenIcon,
+import {
   GlobeAltIcon,
   FireIcon,
   StarIcon,
-  ClockIcon,
   CheckCircleIcon,
-  XCircleIcon
+  BookOpenIcon,
+  TrophyIcon
 } from '@heroicons/react/24/outline';
+import { useAccount, useNetwork } from 'wagmi';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
-  const { navigateToLearn, isDark, setIsDark, isWalletConnected } = useNavigation();
-  const { openConnectModal } = useConnectModal();
+  const { navigateToLearn, isDark, setIsDark } = useNavigation();
+  const { chain } = useNetwork();
+  const xpAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS_XP || '—';
+  const skillAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS_SKILL || '—';
 
-  if (!isWalletConnected) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
-        <Head>
-          <title>Dashboard - ScholarForge</title>
-        </Head>
-        <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Connect your wallet to view your dashboard</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">Track progress, XP, NFTs, and settings after connecting.</p>
-          <button onClick={() => openConnectModal && openConnectModal()} className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700">Connect Wallet</button>
-        </div>
-      </div>
-    )
-  }
-
-  // Mock user data
-  const user = {
+  const baseUser = {
     name: "Kwame Asante",
     avatar: "🇬🇭",
-    level: 15,
-    xp: 1250,
-    totalXP: 8500,
-    streak: 7,
-    languages: ["Twi", "English", "French"],
-    nfts: 3,
-    quizzesCompleted: 24,
-    accuracy: 87
+    level: 1,
+    xp: 0,
+    totalXP: 0,
+    streak: 0,
+    languages: [],
+    nfts: 0,
+    quizzesCompleted: 0,
+    accuracy: 0
   };
 
-  const recentActivity = [
-    { type: 'quiz', title: 'Ghanaian History Quiz', language: 'Twi', xp: 50, date: '2 hours ago' },
-    { type: 'nft', title: 'Language Hero: Twi', language: 'Twi', xp: 100, date: '1 day ago' },
-    { type: 'quiz', title: 'Crypto Basics', language: 'English', xp: 30, date: '2 days ago' },
-    { type: 'quiz', title: 'Nigerian Culture', language: 'Yoruba', xp: 45, date: '3 days ago' }
-  ];
+  const [user, setUser] = useState(baseUser);
+  const [skillNFTs, setSkillNFTs] = useState([]);
+
+  useEffect(() => {
+    try {
+      const xp = Number(localStorage.getItem('sf_user_xp') || '0');
+      const quizzesCompleted = Number(localStorage.getItem('sf_quizzes_completed') || '0');
+      const nfts = JSON.parse(localStorage.getItem('sf_skill_nfts') || '[]');
+      
+      // Calculate level from XP (100 XP per level)
+      const level = Math.max(1, Math.floor(xp / 100) + 1);
+      
+      // Calculate accuracy (if quizzes completed)
+      const accuracy = quizzesCompleted > 0 ? Math.round((xp / (quizzesCompleted * 100)) * 100) : 0;
+      
+      // Get unique languages from localStorage
+      const selectedLangs = JSON.parse(localStorage.getItem('sf_completed_languages') || '[]');
+      
+      setUser((u) => ({ 
+        ...u, 
+        xp, 
+        totalXP: xp,
+        quizzesCompleted, 
+        level,
+        accuracy: Math.min(100, accuracy), // Cap at 100%
+        nfts: nfts.length,
+        languages: selectedLangs
+      }));
+      setSkillNFTs(nfts);
+    } catch {}
+  }, []);
+
+  // Get real recent activity from localStorage
+  const getRecentActivity = () => {
+    try {
+      return JSON.parse(localStorage.getItem('sf_recent_activity') || '[]');
+    } catch {
+      return [];
+    }
+  };
+
+  const [recentActivity, setRecentActivity] = useState(getRecentActivity());
 
   const learningStats = [
     { label: 'Languages', value: user.languages.length, icon: GlobeAltIcon, color: 'primary' },
@@ -148,6 +163,26 @@ export default function Dashboard() {
             </button>
           ))}
         </div>
+
+        {/* Blockchain status */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6 mb-8"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Connected Network</div>
+              <div className="text-xl font-bold text-gray-900 dark:text-white">{chain?.name || 'Not connected'}</div>
+              <div className="text-xs text-gray-500">Chain ID: {chain?.id ?? '—'}</div>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-gray-600 dark:text-gray-300">Contracts</div>
+              <div className="text-xs text-gray-500">XPToken: {xpAddress}</div>
+              <div className="text-xs text-gray-500">SkillNFT: {skillAddress}</div>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Tab Content */}
         {activeTab === 'overview' && (
@@ -262,7 +297,57 @@ export default function Dashboard() {
             className="space-y-8"
           >
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Your NFTs</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Your Skill NFTs</h2>
+              
+              {skillNFTs.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {skillNFTs.map((nft, index) => (
+                    <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-800 dark:to-gray-700">
+                      <div className="text-center">
+                        <div className="text-4xl mb-3">🏆</div>
+                        <h3 className="font-bold text-gray-900 dark:text-white mb-2">{nft.skill}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{nft.topic} • {nft.language}</p>
+                        <span className="inline-block bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 text-xs px-2 py-1 rounded-full mb-3">
+                          {nft.level}
+                        </span>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                          <p>Minted: {new Date(nft.mintedAt).toLocaleDateString()}</p>
+                          {nft.tokenId && <p>Token ID: {nft.tokenId}</p>}
+                        </div>
+                        {nft.txHash && (
+                          <a 
+                            href={`https://opencampus-codex.blockscout.com/tx/${nft.txHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block mt-3 text-blue-600 hover:text-blue-700 text-xs"
+                          >
+                            View on Explorer ↗
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <TrophyIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Skill NFTs Yet</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-6">
+                    Complete courses 100% to earn Skill NFTs that prove your expertise!
+                  </p>
+                  <button 
+                    onClick={() => window.location.href = '/learn'}
+                    className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700"
+                  >
+                    Start Learning
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Mock NFTs for Demo */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Achievement NFTs (Demo)</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {nfts.map((nft) => (
                   <div key={nft.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">

@@ -15,8 +15,29 @@ export function useNavigation() {
   return useContext(NavigationContext)
 }
 
+function buildChains() {
+  const defaultChains = [mainnet, polygon, optimism, arbitrum, base, bsc, avalanche, celo, scroll, zkSync]
+  const idStr = process.env.NEXT_PUBLIC_EDUCHAIN_ID
+  const rpc = process.env.NEXT_PUBLIC_EDUCHAIN_RPC
+  if (idStr && rpc) {
+    const idNum = Number(idStr)
+    const educhain = {
+      id: idNum,
+      name: 'EduChain',
+      network: 'educhain',
+      nativeCurrency: { name: 'EDU', symbol: 'EDU', decimals: 18 },
+      rpcUrls: {
+        default: { http: [rpc] },
+        public: { http: [rpc] }
+      }
+    }
+    return [educhain, ...defaultChains]
+  }
+  return defaultChains
+}
+
 const { chains, publicClient } = configureChains(
-  [mainnet, polygon, optimism, arbitrum, base, bsc, avalanche, celo, scroll, zkSync],
+  buildChains(),
   [publicProvider()]
 )
 

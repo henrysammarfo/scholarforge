@@ -30,6 +30,7 @@ export default function Header({ onToggleTheme, isDark }) {
                 <Link href="/dashboard" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Dashboard</Link>
                 <Link href="/community" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Community</Link>
                 <Link href="/create" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Create</Link>
+                <Link href="/wallet" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">Wallet</Link>
               </>
             )}
             <button onClick={onToggleTheme} className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800">

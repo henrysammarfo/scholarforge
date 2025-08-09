@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
 
 /**
  * @title ScholarForge XPToken (ERC20)
  * @notice XPToken is the core reward token for ScholarForge. Only QuizMasters can mint XP for quiz performance.
  * @dev Extensible for tipping, pausing, and future upgrades.
  */
-contract XPToken is ERC20, AccessControl, Pausable {
+contract XPToken is ERC20Pausable, AccessControl {
     /// @notice Role for accounts allowed to mint XP (QuizMasters)
     bytes32 public constant QUIZMASTER_ROLE = keccak256("QUIZMASTER_ROLE");
 
@@ -79,23 +78,12 @@ contract XPToken is ERC20, AccessControl, Pausable {
     /**
      * @notice Pause all token transfers and minting (admin only)
      */
-    function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _pause();
-    }
+    function pause() external onlyRole(DEFAULT_ADMIN_ROLE) { _pause(); }
 
     /**
      * @notice Unpause all token transfers and minting (admin only)
      */
-    function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _unpause();
-    }
-
-    /**
-     * @dev Override _beforeTokenTransfer to respect pause state
-     */
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal override whenNotPaused {
-        super._beforeTokenTransfer(from, to, amount);
-    }
+    function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) { _unpause(); }
 
     // TODO: Add tipping, staking, and other gamification features here
 }
