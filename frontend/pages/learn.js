@@ -38,23 +38,74 @@ export default function Learn() {
     { id: 'arts', name: 'Arts & Music', icon: '🎨', description: 'African arts, music, and creative expression' }
   ];
 
+  // Load saved language and topic on component mount
+  useEffect(() => {
+    try {
+      const savedLanguageCode = localStorage.getItem('sf_selected_language_code');
+      const savedLanguageName = localStorage.getItem('sf_selected_language_name');
+      const savedTopicId = localStorage.getItem('sf_selected_topic_id');
+      const savedTopicName = localStorage.getItem('sf_selected_topic_name');
+
+      if (savedLanguageCode && savedLanguageName) {
+        const savedLanguage = languages.find(lang => lang.code === savedLanguageCode);
+        if (savedLanguage) {
+          setSelectedLanguage(savedLanguage);
+          setCurrentLangCode(savedLanguageCode);
+        }
+      }
+
+      if (savedTopicId && savedTopicName && selectedLanguage) {
+        const savedTopic = topics.find(topic => topic.id === savedTopicId);
+        if (savedTopic) {
+          setSelectedTopic(savedTopic);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading saved preferences:', error);
+    }
+  }, []);
+
   const handleLanguageSelect = (language) => {
     setSelectedLanguage(language);
     setSelectedTopic(null);
     setCurrentLangCode(language.code);
+    
     try {
-      localStorage.setItem('sf_selected_language_code', language.code)
-      localStorage.setItem('sf_selected_language_name', language.name)
-    } catch {}
+      localStorage.setItem('sf_selected_language_code', language.code);
+      localStorage.setItem('sf_selected_language_name', language.name);
+      // Clear previous topic selection when language changes
+      localStorage.removeItem('sf_selected_topic_id');
+      localStorage.removeItem('sf_selected_topic_name');
+    } catch (error) {
+      console.error('Error saving language preference:', error);
+    }
   };
 
   const handleTopicSelect = (topic) => {
     setSelectedTopic(topic);
     try {
-      localStorage.setItem('sf_selected_topic_id', topic.id)
-      localStorage.setItem('sf_selected_topic_name', topic.name)
-    } catch {}
-    window.location.href = '/course';
+      localStorage.setItem('sf_selected_topic_id', topic.id);
+      localStorage.setItem('sf_selected_topic_name', topic.name);
+    } catch (error) {
+      console.error('Error saving topic preference:', error);
+    }
+    
+    // Navigate to course page with selected language and topic
+    window.location.href = `/course?lang=${selectedLanguage.code}&topic=${topic.id}`;
+  };
+
+  const resetSelections = () => {
+    setSelectedLanguage(null);
+    setSelectedTopic(null);
+    setCurrentLangCode('en');
+    try {
+      localStorage.removeItem('sf_selected_language_code');
+      localStorage.removeItem('sf_selected_language_name');
+      localStorage.removeItem('sf_selected_topic_id');
+      localStorage.removeItem('sf_selected_topic_name');
+    } catch (error) {
+      console.error('Error clearing preferences:', error);
+    }
   };
 
   return (
@@ -108,12 +159,21 @@ export default function Learn() {
             className="text-center"
           >
             <div className="mb-8">
-              <button
-                onClick={() => setSelectedLanguage(null)}
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white mb-4"
-              >
-                {getTranslation('backToLanguages', currentLangCode)}
-              </button>
+              <div className="flex items-center justify-center space-x-4 mb-4">
+                <button
+                  onClick={resetSelections}
+                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                >
+                  {getTranslation('backToLanguages', currentLangCode)}
+                </button>
+                <span className="text-gray-400">|</span>
+                <button
+                  onClick={() => setSelectedLanguage(null)}
+                  className="text-primary-600 hover:text-primary-700"
+                >
+                  Change Language
+                </button>
+              </div>
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
                 {getTranslation('chooseTopic', currentLangCode)}
               </h1>

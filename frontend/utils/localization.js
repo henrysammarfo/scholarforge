@@ -68,6 +68,142 @@ export const translations = {
     expert: "Expert"
   },
   
+  tw: {
+    // Navigation
+    learn: "Kyerɛ",
+    dashboard: "Dashboard",
+    community: "Community",
+    create: "Yɛ",
+    wallet: "Wallet",
+    profile: "Profile",
+    
+    // Learning
+    chooseLanguage: "Paw Wo Kyerɛ Kasa",
+    selectLanguage: "Paw kasa a wo pɛ sɛ wo kyerɛ",
+    chooseTopic: "Paw Wo Mmoa",
+    learningIn: "Kyerɛ wɔ",
+    selectTopic: "Paw biribi a wo pɛ sɛ wo kyerɛ",
+    backToLanguages: "← San kɔ Kasa Ho",
+    
+    // Course
+    lessons: "nsuahunu",
+    progress: "Nkɔsoɔ",
+    markComplete: "Fa Nkyerɛ Sɛ Ewieɛ",
+    nextLesson: "Suaahunu A Eto Soɔ",
+    previousLesson: "← Suaahunu A Ekan",
+    takeQuiz: "Yɛ Quiz",
+    
+    // Quiz
+    quizCompleted: "Quiz Awieɛ!",
+    greatJob: "Yɛ adeɛ yie! Wo nyaa",
+    and: "ne",
+    earned: "wo nyaa",
+    goToDashboard: "Kɔ Dashboard",
+    takeAnotherQuiz: "Yɛ Quiz Foforɔ",
+    
+    // Profile & Dashboard
+    totalXP: "XP Nyinaa",
+    level: "Level",
+    dayStreak: "Da A Wo Yɛɛ",
+    quizzes: "Quizzes",
+    languages: "Kasa",
+    editProfile: "Sesa Profile",
+    saveProfile: "Save",
+    learningProgress: "Kyerɛ Nkɔsoɔ",
+    achievements: "Nneɛma A Wo Yɛɛ",
+    recentActivity: "Nneɛma A Wo Yɛɛ Nkyerɛ",
+    
+    // Blockchain
+    mintXP: "Yɛ XP Tokens",
+    mintSkillNFT: "Yɛ Skill NFT",
+    wrongNetwork: "Network Nso",
+    switchNetwork: "Sesa Network",
+    connectWallet: "Fa wo wallet connect sɛ wo yɛ tokens",
+    minting: "Wɔ yɛ...",
+    mintingSuccess: "Awieɛ Yie!",
+    mintingFailed: "Nso",
+    viewOnExplorer: "Hwɛ wɔ Explorer",
+    
+    // Common
+    close: "To",
+    tryAgain: "San Yɛ Bio",
+    comingSoon: "Reba",
+    loading: "Wɔ load...",
+    completed: "Awieɛ",
+    beginner: "Foforɔ",
+    intermediate: "Mfinimfini",
+    advanced: "Advanced",
+    expert: "Expert"
+  },
+  
+  yo: {
+    // Navigation
+    learn: "Kọ",
+    dashboard: "Dashboard",
+    community: "Agbajo",
+    create: "Dá",
+    wallet: "Apamọ",
+    profile: "Profaili",
+    
+    // Learning
+    chooseLanguage: "Yan Ede Tí O Fẹ́ Kọ́",
+    selectLanguage: "Yan ede tí o fẹ́ kọ́",
+    chooseTopic: "Yan Koko-ọrọ̀",
+    learningIn: "Kíkọ́ nínú",
+    selectTopic: "Yan ohun tí o fẹ́ kọ́",
+    backToLanguages: "← Padà sí Ede",
+    
+    // Course
+    lessons: "ìkẹ́kọ̀ọ́",
+    progress: "Ìlọsíwájú",
+    markComplete: "Fi Àmì Sí Iparí",
+    nextLesson: "Ìkẹ́kọ̀ọ́ Tí O Tẹ́lé",
+    previousLesson: "← Ìkẹ́kọ̀ọ́ Tí O Kọjá",
+    takeQuiz: "Ṣe Quiz",
+    
+    // Quiz
+    quizCompleted: "Quiz Parí!",
+    greatJob: "Ṣe iṣẹ́ dára! O gba",
+    and: "àti",
+    earned: "o gba",
+    goToDashboard: "Lọ sí Dashboard",
+    takeAnotherQuiz: "Ṣe Quiz Mìíràn",
+    
+    // Profile & Dashboard
+    totalXP: "XP Gbogbo",
+    level: "Ipele",
+    dayStreak: "Ọjọ́ Tí O Ṣe",
+    quizzes: "Quizzes",
+    languages: "Ede",
+    editProfile: "Ṣàtúnṣe Profaili",
+    saveProfile: "Fi",
+    learningProgress: "Ìlọsíwájú Ìkẹ́kọ̀ọ́",
+    achievements: "Ìṣẹ́gun",
+    recentActivity: "Ìṣẹ́ Tí O Ṣe Látíjọ́",
+    
+    // Blockchain
+    mintXP: "Dá XP Tokens",
+    mintSkillNFT: "Dá Skill NFT",
+    wrongNetwork: "Nẹ́tiwọọ̀kì Kò Tọ́",
+    switchNetwork: "Yípadà Nẹ́tiwọọ̀kì",
+    connectWallet: "So apamọ rẹ mọ́ kí o lè dá tokens",
+    minting: "N dára...",
+    mintingSuccess: "Dá Ní Onírúurú!",
+    mintingFailed: "Kò Dá",
+    viewOnExplorer: "Wo lórí Explorer",
+    
+    // Common
+    close: "Pí",
+    tryAgain: "Gbìyànjú Lẹ́ẹ̀kan Si",
+    comingSoon: "N bọ̀",
+    loading: "N gbé...",
+    completed: "Parí",
+    beginner: "Olùbẹ̀rẹ̀",
+    intermediate: "Alágbàgbé",
+    advanced: "Olùgbà",
+    expert: "Olùgbà"
+  },
+  
   sw: {
     // Navigation
     learn: "Jifunze",

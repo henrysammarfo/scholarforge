@@ -12,7 +12,11 @@ import {
   ExclamationCircleIcon,
   GlobeAltIcon,
   BookOpenIcon,
-  SparklesIcon
+  SparklesIcon,
+  ShareIcon,
+  ClockIcon,
+  UsersIcon,
+  LinkIcon
 } from '@heroicons/react/24/outline';
 
 export default function Create() {
@@ -25,6 +29,10 @@ export default function Create() {
     topic: '',
     difficulty: 'beginner',
     xpReward: 50,
+    maxParticipants: 100,
+    duration: 30, // in minutes
+    isPublic: true,
+    allowRetakes: false,
     questions: [
       {
         id: 1,
@@ -35,6 +43,8 @@ export default function Create() {
       }
     ]
   });
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [quizLink, setQuizLink] = useState('');
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -113,12 +123,40 @@ export default function Create() {
 
   const handleSubmit = () => {
     if (validateQuiz()) {
+      // Generate quiz link
+      const quizId = Date.now().toString(36) + Math.random().toString(36).substr(2);
+      const link = `${window.location.origin}/quiz/${quizId}`;
+      setQuizLink(link);
+      
       // Here you would submit to your API
       console.log('Submitting quiz:', quizData);
       alert('Quiz created successfully! 🎉 You earned 25 XP for contributing to the community.');
-      navigateToCommunity();
+      
+      // Show share modal
+      setShowShareModal(true);
     } else {
       alert('Please fill in all required fields.');
+    }
+  };
+
+  const copyQuizLink = () => {
+    navigator.clipboard.writeText(quizLink);
+    alert('Quiz link copied to clipboard!');
+  };
+
+  const shareQuiz = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: quizData.title,
+          text: `Check out this quiz: ${quizData.title}`,
+          url: quizLink,
+        });
+      } catch (error) {
+        console.log('Error sharing:', error);
+      }
+    } else {
+      copyQuizLink();
     }
   };
 
@@ -134,7 +172,6 @@ export default function Create() {
         <title>Create Quiz - ScholarForge</title>
         <meta name="description" content="Create and share educational quizzes with the ScholarForge community" />
       </Head>
-
       <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -153,12 +190,12 @@ export default function Create() {
         {/* Progress Steps */}
         <div className="flex justify-center mb-8">
           <div className="flex items-center space-x-4">
-            {[1, 2, 3].map((step) => (
+            {[1, 2, 3, 4].map((step) => (
               <div key={step} className="flex items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${getStepColor(step)}`}>
                   {step < currentStep ? <CheckCircleIcon className="h-5 w-5" /> : step}
                 </div>
-                {step < 3 && (
+                {step < 4 && (
                   <div className={`w-12 h-0.5 ${step < currentStep ? 'bg-success-600' : 'bg-gray-300'}`}></div>
                 )}
               </div>
@@ -261,8 +298,81 @@ export default function Create() {
             </motion.div>
           )}
 
-          {/* Step 2: Questions */}
+          {/* Step 2: Quiz Settings */}
           {currentStep === 2 && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-6"
+            >
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Quiz Settings</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <UsersIcon className="h-4 w-4 inline mr-2" />
+                    Max Participants
+                  </label>
+                  <input
+                    type="number"
+                    value={quizData.maxParticipants}
+                    onChange={(e) => setQuizData({...quizData, maxParticipants: parseInt(e.target.value)})}
+                    min="1"
+                    max="1000"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Maximum number of people who can take this quiz</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <ClockIcon className="h-4 w-4 inline mr-2" />
+                    Duration (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    value={quizData.duration}
+                    onChange={(e) => setQuizData({...quizData, duration: parseInt(e.target.value)})}
+                    min="5"
+                    max="180"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Time limit for completing the quiz</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="isPublic"
+                    checked={quizData.isPublic}
+                    onChange={(e) => setQuizData({...quizData, isPublic: e.target.checked})}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="isPublic" className="ml-2 block text-sm text-gray-900 dark:text-gray-100">
+                    Make this quiz public (visible to everyone)
+                  </label>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="allowRetakes"
+                    checked={quizData.allowRetakes}
+                    onChange={(e) => setQuizData({...quizData, allowRetakes: e.target.checked})}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="allowRetakes" className="ml-2 block text-sm text-gray-900 dark:text-gray-100">
+                    Allow participants to retake the quiz
+                  </label>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 3: Questions */}
+          {currentStep === 3 && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -299,13 +409,13 @@ export default function Create() {
                       type="text"
                       value={question.question}
                       onChange={(e) => updateQuestion(question.id, 'question', e.target.value)}
-                      placeholder="Enter your question..."
+                      placeholder="Enter your question here..."
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Answer Options *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Answer Options</label>
                     <div className="space-y-2">
                       {question.answers.map((answer, answerIndex) => (
                         <div key={answerIndex} className="flex items-center space-x-3">
@@ -314,19 +424,18 @@ export default function Create() {
                             name={`correct-${question.id}`}
                             checked={question.correctAnswer === answerIndex}
                             onChange={() => updateQuestion(question.id, 'correctAnswer', answerIndex)}
-                            className="text-primary-600"
+                            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
                           />
                           <input
                             type="text"
                             value={answer}
                             onChange={(e) => updateAnswer(question.id, answerIndex, e.target.value)}
                             placeholder={`Option ${answerIndex + 1}`}
-                            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                           />
                         </div>
                       ))}
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Select the correct answer by clicking the radio button</p>
                   </div>
 
                   <div>
@@ -334,7 +443,7 @@ export default function Create() {
                     <textarea
                       value={question.explanation}
                       onChange={(e) => updateQuestion(question.id, 'explanation', e.target.value)}
-                      placeholder="Explain why this is the correct answer..."
+                      placeholder="Explain why this answer is correct..."
                       rows={2}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     />
@@ -344,18 +453,18 @@ export default function Create() {
             </motion.div>
           )}
 
-          {/* Step 3: Review */}
-          {currentStep === 3 && (
+          {/* Step 4: Review & Publish */}
+          {currentStep === 4 && (
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               className="space-y-6"
             >
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Review Your Quiz</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Review & Publish</h2>
               
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">{quizData.title}</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-600 dark:text-gray-300">Language:</span>
                     <div className="font-medium text-gray-900 dark:text-white">
@@ -375,6 +484,14 @@ export default function Create() {
                   <div>
                     <span className="text-gray-600 dark:text-gray-300">XP Reward:</span>
                     <div className="font-medium text-gray-900 dark:text-white">{quizData.xpReward} XP</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-600 dark:text-gray-300">Max Participants:</span>
+                    <div className="font-medium text-gray-900 dark:text-white">{quizData.maxParticipants}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-600 dark:text-gray-300">Duration:</span>
+                    <div className="font-medium text-gray-900 dark:text-white">{quizData.duration} minutes</div>
                   </div>
                 </div>
                 {quizData.description && (
@@ -432,7 +549,7 @@ export default function Create() {
             </button>
 
             <div className="flex space-x-4">
-              {currentStep < 3 ? (
+              {currentStep < 4 ? (
                 <button
                   onClick={() => setCurrentStep(currentStep + 1)}
                   className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
@@ -453,6 +570,58 @@ export default function Create() {
           </div>
         </div>
       </div>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-8 max-w-md w-full mx-4">
+            <div className="text-center">
+              <CheckCircleIcon className="h-16 w-16 text-success-600 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Quiz Published!</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                Your quiz "{quizData.title}" has been successfully published and is now available for the community!
+              </p>
+              
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quiz Link</label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={quizLink}
+                    readOnly
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
+                  />
+                  <button
+                    onClick={copyQuizLink}
+                    className="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  >
+                    <LinkIcon className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={shareQuiz}
+                  className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 flex items-center justify-center"
+                >
+                  <ShareIcon className="h-4 w-4 mr-2" />
+                  Share Quiz
+                </button>
+                <button
+                  onClick={() => {
+                    setShowShareModal(false);
+                    navigateToCommunity();
+                  }}
+                  className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                >
+                  Go to Community
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
