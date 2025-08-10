@@ -44,38 +44,25 @@ export default function Header({ onToggleTheme, isDark }) {
             </motion.div>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            {navigation.map((item) => (
-              <motion.a
-                key={item.name}
-                href={item.href}
-                whileHover={{ scale: 1.05 }}
-                className="flex items-center space-x-1 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                <item.icon className="h-4 w-4" />
-                <span>{item.name}</span>
-              </motion.a>
-            ))}
-          </nav>
+          {/* Desktop Navigation - Only show when wallet is connected */}
+          {isWalletConnected && (
+            <nav className="hidden md:flex space-x-8">
+              {navigation.map((item) => (
+                <motion.a
+                  key={item.name}
+                  href={item.href}
+                  whileHover={{ scale: 1.05 }}
+                  className="flex items-center space-x-1 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.name}</span>
+                </motion.a>
+              ))}
+            </nav>
+          )}
 
           {/* Right side - Theme toggle and mobile menu */}
           <div className="flex items-center space-x-4">
-            {isWalletConnected && (
-              <>
-                {navigation.map((item) => (
-                  <motion.a
-                    key={item.name}
-                    href={item.href}
-                    whileHover={{ scale: 1.05 }}
-                    className="flex items-center space-x-1 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.name}</span>
-                  </motion.a>
-                ))}
-              </>
-            )}
             {/* Theme Toggle */}
             <motion.button
               whileHover={{ scale: 1.05 }}
