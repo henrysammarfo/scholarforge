@@ -48,7 +48,9 @@ export default function Wallet() {
     ]
   };
 
-  const EDUCHAIN_ID = Number(process.env.NEXT_PUBLIC_EDUCHAIN_ID || '656476');
+  // EduChain Testnet Configuration
+  const EDUCHAIN_ID = 656476; // Decimal chain ID
+  const EDUCHAIN_HEX = '0x9f8c4'; // Hexadecimal chain ID
   const isEduChain = chain?.id === EDUCHAIN_ID;
 
   // Enhanced network switching function
@@ -63,9 +65,10 @@ export default function Wallet() {
       // Try to switch to EduChain first
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${EDUCHAIN_ID.toString(16)}` }],
+        params: [{ chainId: EDUCHAIN_HEX }],
       });
     } catch (switchError) {
+      console.log('Switch error:', switchError);
       // If network doesn't exist, add it
       if (switchError.code === 4902) {
         try {
@@ -73,18 +76,20 @@ export default function Wallet() {
             method: 'wallet_addEthereumChain',
             params: [
               {
-                chainId: `0x${EDUCHAIN_ID.toString(16)}`,
+                chainId: EDUCHAIN_HEX,
                 chainName: 'EduChain Testnet',
-                rpcUrls: [process.env.NEXT_PUBLIC_EDUCHAIN_RPC || 'https://rpc-testnet.opencampus.xyz'],
+                rpcUrls: ['https://rpc-testnet.opencampus.xyz'],
                 nativeCurrency: {
                   name: 'EDU',
                   symbol: 'EDU',
                   decimals: 18,
                 },
                 blockExplorerUrls: ['https://opencampus-codex.blockscout.com/'],
+                iconUrls: ['https://opencampus.xyz/favicon.ico'],
               },
             ],
           });
+          console.log('EduChain network added successfully');
         } catch (addError) {
           console.error('Failed to add EduChain network:', addError);
           alert('Failed to add EduChain network. Please try again.');
@@ -122,31 +127,55 @@ export default function Wallet() {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Network Status Banner */}
-        {!isEduChain && isConnected && (
+        {isConnected && (
           <motion.div 
             initial={{ opacity: 0, y: -20 }} 
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 bg-orange-100 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4"
+            className={`mb-6 rounded-xl p-6 ${
+              isEduChain 
+                ? 'bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800' 
+                : 'bg-orange-100 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800'
+            }`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <ExclamationTriangleIcon className="h-5 w-5 text-orange-600 mr-2" />
-                <span className="text-orange-800 dark:text-orange-200">You're not connected to EduChain Testnet</span>
-              </div>
-              <button 
-                onClick={handleNetworkSwitch}
-                disabled={isAddingNetwork}
-                className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-              >
-                {isAddingNetwork ? (
+                {isEduChain ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Adding Network...
+                    <CheckCircleIcon className="h-6 w-6 text-green-600 mr-3" />
+                    <div>
+                      <span className="text-green-800 dark:text-green-200 font-medium">Connected to EduChain Testnet</span>
+                      <p className="text-green-700 dark:text-green-300 text-sm mt-1">Chain ID: {chain?.id} • Network: {chain?.name}</p>
+                    </div>
                   </>
                 ) : (
-                  'Switch to EduChain'
+                  <>
+                    <ExclamationTriangleIcon className="h-6 w-6 text-orange-600 mr-3" />
+                    <div>
+                      <span className="text-orange-800 dark:text-orange-200 font-medium">Wrong Network Detected</span>
+                      <p className="text-orange-700 dark:text-orange-300 text-sm mt-1">Current: {chain?.name} (ID: {chain?.id}) • Required: EduChain Testnet (ID: {EDUCHAIN_ID})</p>
+                    </div>
+                  </>
                 )}
-              </button>
+              </div>
+              {!isEduChain && (
+                <button 
+                  onClick={handleNetworkSwitch}
+                  disabled={isAddingNetwork}
+                  className="bg-orange-600 text-white px-6 py-3 rounded-xl hover:bg-orange-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  {isAddingNetwork ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Adding Network...
+                    </>
+                  ) : (
+                    <>
+                      <PlusIcon className="h-4 w-4 mr-2" />
+                      Switch to EduChain
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </motion.div>
         )}
