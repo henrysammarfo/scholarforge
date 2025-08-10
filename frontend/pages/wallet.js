@@ -33,6 +33,7 @@ export default function Wallet() {
   const [swapFromToken, setSwapFromToken] = useState('EDU');
   const [swapToToken, setSwapToToken] = useState('XP');
   const [swapAmount, setSwapAmount] = useState('');
+  const [isAddingNetwork, setIsAddingNetwork] = useState(false);
 
   // Mock wallet data for demo
   const walletData = {
@@ -47,7 +48,55 @@ export default function Wallet() {
     ]
   };
 
-  const isEduChain = chain?.id === Number(process.env.NEXT_PUBLIC_EDUCHAIN_ID || '656476');
+  const EDUCHAIN_ID = Number(process.env.NEXT_PUBLIC_EDUCHAIN_ID || '656476');
+  const isEduChain = chain?.id === EDUCHAIN_ID;
+
+  // Enhanced network switching function
+  const handleNetworkSwitch = async () => {
+    if (!window.ethereum) {
+      alert('Please install MetaMask or another Web3 wallet');
+      return;
+    }
+
+    setIsAddingNetwork(true);
+    try {
+      // Try to switch to EduChain first
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: `0x${EDUCHAIN_ID.toString(16)}` }],
+      });
+    } catch (switchError) {
+      // If network doesn't exist, add it
+      if (switchError.code === 4902) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainId: `0x${EDUCHAIN_ID.toString(16)}`,
+                chainName: 'EduChain Testnet',
+                rpcUrls: [process.env.NEXT_PUBLIC_EDUCHAIN_RPC || 'https://rpc-testnet.opencampus.xyz'],
+                nativeCurrency: {
+                  name: 'EDU',
+                  symbol: 'EDU',
+                  decimals: 18,
+                },
+                blockExplorerUrls: ['https://opencampus-codex.blockscout.com/'],
+              },
+            ],
+          });
+        } catch (addError) {
+          console.error('Failed to add EduChain network:', addError);
+          alert('Failed to add EduChain network. Please try again.');
+        }
+      } else {
+        console.error('Failed to switch to EduChain network:', switchError);
+        alert('Failed to switch to EduChain network. Please try again.');
+      }
+    } finally {
+      setIsAddingNetwork(false);
+    }
+  };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
@@ -85,11 +134,35 @@ export default function Wallet() {
                 <span className="text-orange-800 dark:text-orange-200">You're not connected to EduChain Testnet</span>
               </div>
               <button 
-                onClick={() => switchNetwork?.(Number(process.env.NEXT_PUBLIC_EDUCHAIN_ID || '656476'))}
-                className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 text-sm"
+                onClick={handleNetworkSwitch}
+                disabled={isAddingNetwork}
+                className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
               >
-                Switch Network
+                {isAddingNetwork ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Adding Network...
+                  </>
+                ) : (
+                  'Switch to EduChain'
+                )}
               </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Not Connected Banner */}
+        {!isConnected && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <ExclamationTriangleIcon className="h-5 w-5 text-blue-600 mr-2" />
+                <span className="text-blue-800 dark:text-blue-200">Please connect your wallet to access ScholarForge features</span>
+              </div>
             </div>
           </motion.div>
         )}
