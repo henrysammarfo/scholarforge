@@ -267,7 +267,7 @@ export const switchToEduChain = async () => {
             {
               chainId: `0x${EDUCHAIN_ID.toString(16)}`,
                              chainName: 'EDU Chain Testnet',
-               rpcUrls: [process.env.NEXT_PUBLIC_EDUCHAIN_RPC],
+               rpcUrls: [process.env.NEXT_PUBLIC_EDUCHAIN_RPC_URL],
                nativeCurrency: {
                  name: 'EDU',
                  symbol: 'EDU',
