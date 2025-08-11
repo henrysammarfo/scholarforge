@@ -79,6 +79,15 @@ export default function App({ Component, pageProps }) {
     }
   }, [])
 
+  // Monitor theme changes and apply to HTML element
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [isDark])
+
   // Apply theme changes to HTML element and save to localStorage
   const handleThemeChange = (newTheme) => {
     setIsDark(newTheme)

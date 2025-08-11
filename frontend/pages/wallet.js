@@ -74,8 +74,8 @@ export default function Wallet() {
   };
 
   // EduChain Testnet Configuration
-  const EDUCHAIN_ID = 656476; // Decimal chain ID
-  const EDUCHAIN_HEX = '0x9f8c4'; // Hexadecimal chain ID
+  const EDUCHAIN_ID = 653508; // Decimal chain ID
+  const EDUCHAIN_HEX = '0x9f8c8'; // Hexadecimal chain ID
   const isEduChain = chain?.id === EDUCHAIN_ID;
 
   // Enhanced network switching function
