@@ -144,19 +144,6 @@ export const mintSkillNFT = async (walletClient, userAddress, skillDetails) => {
       throw new Error('Wallet not connected');
     }
 
-    // For Vercel deployment, let's use a mock response
-    if (process.env.NODE_ENV === 'production') {
-      // Mock successful NFT minting for demo
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      return {
-        success: true,
-        txHash: `0x${'nft'.repeat(16)}`,
-        tokenId: Math.floor(Math.random() * 10000),
-        blockNumber: Math.floor(Math.random() * 1000000),
-        gasUsed: '45000'
-      };
-    }
-
     const signer = walletClient;
     const contract = getSkillNFTContract(signer);
     
@@ -165,21 +152,40 @@ export const mintSkillNFT = async (walletClient, userAddress, skillDetails) => {
     
     console.log('Minting Skill NFT:', { userAddress, skill, level, evidence });
     
-    const tx = await contract.mintSkill(userAddress, skill, level, evidence);
+    // Estimate gas first
+    const gasEstimate = await contract.mintSkill.estimateGas(userAddress, skill, evidence);
+    console.log('Gas estimate:', gasEstimate.toString());
+    
+    const tx = await contract.mintSkill(userAddress, skill, evidence, {
+      gasLimit: gasEstimate.mul(120).div(100) // Add 20% buffer
+    });
     console.log('Transaction sent:', tx.hash);
     
     const receipt = await tx.wait();
     console.log('Transaction confirmed:', receipt);
     
     // Extract token ID from logs
-    const tokenId = receipt.logs?.[0]?.topics?.[3];
+    let tokenId = null;
+    if (receipt.logs && receipt.logs.length > 0) {
+      for (const log of receipt.logs) {
+        try {
+          const parsedLog = contract.interface.parseLog(log);
+          if (parsedLog && parsedLog.name === 'SkillMinted') {
+            tokenId = parsedLog.args.tokenId.toString();
+            break;
+          }
+        } catch (e) {
+          // Continue searching for the right log
+        }
+      }
+    }
     
     return {
       success: true,
       txHash: tx.hash,
       blockNumber: receipt.blockNumber,
       gasUsed: receipt.gasUsed.toString(),
-      tokenId: tokenId ? ethers.toBigInt(tokenId).toString() : null
+      tokenId: tokenId
     };
   } catch (error) {
     console.error('Error minting Skill NFT:', error);
@@ -190,7 +196,7 @@ export const mintSkillNFT = async (walletClient, userAddress, skillDetails) => {
   }
 };
 
-// Get XP balance
+// Get XP balance with real blockchain data
 export const getXPBalance = async (provider, userAddress) => {
   try {
     if (!provider || !userAddress) return '0';
@@ -206,7 +212,7 @@ export const getXPBalance = async (provider, userAddress) => {
   }
 };
 
-// Get Skill NFT count
+// Get Skill NFT count with real blockchain data
 export const getSkillNFTCount = async (provider, userAddress) => {
   try {
     if (!provider || !userAddress) return '0';

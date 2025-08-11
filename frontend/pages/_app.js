@@ -64,13 +64,40 @@ export default function App({ Component, pageProps }) {
   const [isDark, setIsDark] = useState(false)
   const router = useRouter()
 
+  // Load theme preference from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('scholarforge-theme')
+    if (savedTheme) {
+      const isDarkTheme = savedTheme === 'dark'
+      setIsDark(isDarkTheme)
+      // Apply theme to HTML element
+      if (isDarkTheme) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    }
+  }, [])
+
+  // Apply theme changes to HTML element and save to localStorage
+  const handleThemeChange = (newTheme) => {
+    setIsDark(newTheme)
+    if (newTheme) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('scholarforge-theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('scholarforge-theme', 'light')
+    }
+  }
+
   const navigationValue = {
     user,
     setUser,
     isWalletConnected,
     setIsWalletConnected,
     isDark,
-    setIsDark,
+    setIsDark: handleThemeChange,
     router,
     navigateToLearn: () => router.push('/learn'),
     navigateToDashboard: () => router.push('/dashboard'),
