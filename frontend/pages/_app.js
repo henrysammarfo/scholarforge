@@ -18,18 +18,22 @@ export function useNavigation() {
 function buildChains() {
   const defaultChains = [mainnet, polygon, optimism, arbitrum, base, bsc, avalanche, celo, scroll, zkSync]
   const idStr = process.env.NEXT_PUBLIC_EDUCHAIN_ID
-  const rpc = process.env.NEXT_PUBLIC_EDUCHAIN_RPC
+  const rpc = process.env.NEXT_PUBLIC_EDUCHAIN_RPC_URL
   if (idStr && rpc) {
     const idNum = Number(idStr)
     const educhain = {
       id: idNum,
-      name: 'EduChain',
-      network: 'educhain',
+      name: 'EDU Chain Testnet',
+      network: 'educhain-testnet',
       nativeCurrency: { name: 'EDU', symbol: 'EDU', decimals: 18 },
       rpcUrls: {
         default: { http: [rpc] },
         public: { http: [rpc] }
-      }
+      },
+      blockExplorers: {
+        default: { name: 'EduChain Explorer', url: 'https://explorer.open-campus-codex.gelato.digital' }
+      },
+      testnet: true
     }
     return [educhain, ...defaultChains]
   }
