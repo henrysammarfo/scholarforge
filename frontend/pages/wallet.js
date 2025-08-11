@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
-import { useAccount, useSwitchNetwork, useNetwork, useBalance } from 'wagmi';
+import { useAccount, useSwitchNetwork, useNetwork, useBalance, useProvider } from 'wagmi';
 import { 
   WalletIcon,
   ArrowUpRightIcon,
@@ -18,6 +18,7 @@ import {
   ExclamationTriangleIcon,
   PlusIcon
 } from '@heroicons/react/24/outline';
+import { getXPBalance, getSkillNFTCount } from '../utils/blockchain';
 
 export default function Wallet() {
   const { isDark, setIsDark } = useNavigation();
@@ -25,6 +26,7 @@ export default function Wallet() {
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
   const { data: balance } = useBalance({ address });
+  const provider = useProvider();
   
   const [activeTab, setActiveTab] = useState('overview');
   const [showPrivateKey, setShowPrivateKey] = useState(false);
@@ -34,12 +36,35 @@ export default function Wallet() {
   const [swapToToken, setSwapToToken] = useState('XP');
   const [swapAmount, setSwapAmount] = useState('');
   const [isAddingNetwork, setIsAddingNetwork] = useState(false);
+  const [xpBalance, setXpBalance] = useState('0');
+  const [nftCount, setNftCount] = useState('0');
 
-  // Mock wallet data for demo
+  // Load real blockchain data
+  useEffect(() => {
+    const loadBlockchainData = async () => {
+      if (isConnected && address && provider) {
+        try {
+          // Get XP balance from smart contract
+          const xpBal = await getXPBalance(provider, address);
+          setXpBalance(xpBal);
+          
+          // Get NFT count from smart contract
+          const nftCnt = await getSkillNFTCount(provider, address);
+          setNftCount(nftCnt);
+        } catch (error) {
+          console.error('Error loading blockchain data:', error);
+        }
+      }
+    };
+
+    loadBlockchainData();
+  }, [isConnected, address, provider]);
+
+  // Real wallet data from blockchain
   const walletData = {
-    xpBalance: '1,250',
+    xpBalance: xpBalance,
     eduBalance: balance?.formatted || '0.0',
-    nftCount: 3,
+    nftCount: parseInt(nftCount) || 0,
     transactions: [
       { type: 'receive', amount: '50 XP', from: 'Quiz Completion', hash: '0x1234...5678', time: '2 min ago', status: 'confirmed' },
       { type: 'send', amount: '0.001 EDU', to: '0x9876...5432', hash: '0x8765...4321', time: '1 hour ago', status: 'confirmed' },
