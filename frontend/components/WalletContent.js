@@ -73,8 +73,8 @@ export default function WalletContent() {
   };
 
   // EduChain Testnet Configuration
-  const EDUCHAIN_ID = 653508; // Decimal chain ID
-  const EDUCHAIN_HEX = '0x9f8c8'; // Hexadecimal chain ID
+  const EDUCHAIN_ID = 656476; // Decimal chain ID
+  const EDUCHAIN_HEX = '0xa06c'; // Hexadecimal chain ID
   const isEduChain = chain?.id === EDUCHAIN_ID;
 
   // Enhanced network switching function
@@ -101,14 +101,14 @@ export default function WalletContent() {
             params: [
               {
                 chainId: EDUCHAIN_HEX,
-                chainName: 'EduChain Testnet',
-                rpcUrls: ['https://rpc-testnet.opencampus.xyz'],
-                nativeCurrency: {
-                  name: 'EDU',
-                  symbol: 'EDU',
-                  decimals: 18,
-                },
-                blockExplorerUrls: ['https://opencampus-codex.blockscout.com/'],
+                                 chainName: 'EDU Chain Testnet',
+                 rpcUrls: ['https://rpc.open-campus-codex.gelato.digital'],
+                 nativeCurrency: {
+                   name: 'EDU',
+                   symbol: 'EDU',
+                   decimals: 18,
+                 },
+                 blockExplorerUrls: ['https://explorer.open-campus-codex.gelato.digital'],
                 iconUrls: ['https://opencampus.xyz/favicon.ico'],
               },
             ],

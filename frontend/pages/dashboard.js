@@ -355,14 +355,14 @@ export default function Dashboard() {
                           {nft.tokenId && <p>Token ID: {nft.tokenId}</p>}
                         </div>
                         {nft.txHash && (
-                          <a 
-                            href={`https://opencampus-codex.blockscout.com/tx/${nft.txHash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block mt-3 text-blue-600 hover:text-blue-700 text-xs"
-                          >
-                            View on Explorer ↗
-                          </a>
+                                                     <a 
+                             href={`https://explorer.open-campus-codex.gelato.digital/tx/${nft.txHash}`}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             className="inline-block mt-3 text-blue-600 hover:text-blue-700 text-xs"
+                           >
+                             View on Explorer ↗
+                           </a>
                         )}
                       </div>
                     </div>
