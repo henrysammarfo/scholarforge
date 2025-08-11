@@ -66,7 +66,7 @@ const SKILL_NFT_ABI = [
 // Contract addresses from environment
 export const XP_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS_XP;
 export const SKILL_NFT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS_SKILL;
-export const EDUCHAIN_ID = Number(process.env.NEXT_PUBLIC_EDUCHAIN_ID || '653508');
+export const EDUCHAIN_ID = Number(process.env.NEXT_PUBLIC_EDUCHAIN_ID || '656476');
 
 // Check if user is on correct network
 export const isCorrectNetwork = (chainId) => {
@@ -266,14 +266,14 @@ export const switchToEduChain = async () => {
           params: [
             {
               chainId: `0x${EDUCHAIN_ID.toString(16)}`,
-              chainName: 'EduChain Testnet',
-              rpcUrls: [process.env.NEXT_PUBLIC_EDUCHAIN_RPC],
-              nativeCurrency: {
-                name: 'EDU',
-                symbol: 'EDU',
-                decimals: 18,
-              },
-              blockExplorerUrls: ['https://opencampus-codex.blockscout.com/'],
+                             chainName: 'EDU Chain Testnet',
+               rpcUrls: [process.env.NEXT_PUBLIC_EDUCHAIN_RPC],
+               nativeCurrency: {
+                 name: 'EDU',
+                 symbol: 'EDU',
+                 decimals: 18,
+               },
+               blockExplorerUrls: ['https://explorer.open-campus-codex.gelato.digital'],
             },
           ],
         });
