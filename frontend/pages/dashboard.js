@@ -60,6 +60,45 @@ export default function Dashboard() {
     } catch {}
   }, []);
 
+  // Real-time updates from localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const xp = Number(localStorage.getItem('sf_user_xp') || '0');
+        const quizzesCompleted = Number(localStorage.getItem('sf_quizzes_completed') || '0');
+        const nfts = JSON.parse(localStorage.getItem('sf_skill_nfts') || '[]');
+        const selectedLangs = JSON.parse(localStorage.getItem('sf_completed_languages') || '[]');
+        
+        const level = Math.max(1, Math.floor(xp / 100) + 1);
+        const accuracy = quizzesCompleted > 0 ? Math.round((xp / (quizzesCompleted * 100)) * 100) : 0;
+        
+        setUser((u) => ({ 
+          ...u, 
+          xp, 
+          totalXP: xp,
+          quizzesCompleted, 
+          level,
+          accuracy: Math.min(100, accuracy),
+          nfts: nfts.length,
+          languages: selectedLangs
+        }));
+        setSkillNFTs(nfts);
+        setRecentActivity(getRecentActivity());
+      } catch {}
+    };
+
+    // Listen for storage events
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check for changes every 2 seconds (for same-tab updates)
+    const interval = setInterval(handleStorageChange, 2000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+
   // Get real recent activity from localStorage
   const getRecentActivity = () => {
     try {
