@@ -105,6 +105,18 @@ export default function Quiz() {
         localStorage.setItem('sf_user_xp', String(prev + earned));
         const qPrev = Number(localStorage.getItem('sf_quizzes_completed') || '0');
         localStorage.setItem('sf_quizzes_completed', String(qPrev + 1));
+        
+        // Track language-specific progress
+        const langXP = Number(localStorage.getItem(`sf_language_xp_${meta.languageName}`) || '0');
+        localStorage.setItem(`sf_language_xp_${meta.languageName}`, String(langXP + earned));
+        const langQuizzes = Number(localStorage.getItem(`sf_language_quizzes_${meta.languageName}`) || '0');
+        localStorage.setItem(`sf_language_quizzes_${meta.languageName}`, String(langQuizzes + 1));
+        
+        // Track topic-specific progress
+        const topicXP = Number(localStorage.getItem(`sf_topic_xp_${meta.topicId}`) || '0');
+        localStorage.setItem(`sf_topic_xp_${meta.topicId}`, String(topicXP + earned));
+        const topicQuizzes = Number(localStorage.getItem(`sf_topic_quizzes_${meta.topicId}`) || '0');
+        localStorage.setItem(`sf_topic_quizzes_${meta.topicId}`, String(topicQuizzes + 1));
       } catch {}
     }
   };

@@ -11,14 +11,9 @@ import {
   BookOpenIcon,
   TrophyIcon
 } from '@heroicons/react/24/outline';
-import { useAccount, useNetwork } from 'wagmi';
-
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const { navigateToLearn, isDark, setIsDark } = useNavigation();
-  const { chain } = useNetwork();
-  const xpAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS_XP || '—';
-  const skillAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS_SKILL || '—';
 
   const baseUser = {
     name: "Kwame Asante",
@@ -165,24 +160,7 @@ export default function Dashboard() {
         </div>
 
         {/* Blockchain status */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6 mb-8"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-gray-600 dark:text-gray-300">Connected Network</div>
-              <div className="text-xl font-bold text-gray-900 dark:text-white">{chain?.name || 'Not connected'}</div>
-              <div className="text-xs text-gray-500">Chain ID: {chain?.id ?? '—'}</div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-600 dark:text-gray-300">Contracts</div>
-              <div className="text-xs text-gray-500">XPToken: {xpAddress}</div>
-              <div className="text-xs text-gray-500">SkillNFT: {skillAddress}</div>
-            </div>
-          </div>
-        </motion.div>
+
 
         {/* Tab Content */}
         {activeTab === 'overview' && (
@@ -253,17 +231,24 @@ export default function Dashboard() {
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Language Progress</h2>
               <div className="space-y-4">
-                {user.languages.map((language, index) => (
-                  <div key={index} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-medium text-gray-900 dark:text-white">{language}</span>
-                      <span className="text-sm text-gray-600 dark:text-gray-300">75% Complete</span>
+                {user.languages.map((language, index) => {
+                  // Calculate real progress based on completed quizzes and XP
+                  const languageXP = Number(localStorage.getItem(`sf_language_xp_${language}`) || '0');
+                  const languageQuizzes = Number(localStorage.getItem(`sf_language_quizzes_${language}`) || '0');
+                  const progress = languageQuizzes > 0 ? Math.min(100, (languageXP / (languageQuizzes * 100)) * 100) : 0;
+                  
+                  return (
+                    <div key={index} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-medium text-gray-900 dark:text-white">{language}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">{Math.round(progress)}% Complete</span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div className="bg-primary-600 h-2 rounded-full" style={{ width: `${progress}%` }}></div>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div className="bg-primary-600 h-2 rounded-full" style={{ width: '75%' }}></div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -271,20 +256,36 @@ export default function Dashboard() {
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Topic Progress</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {['Ghanaian History', 'Nigerian Culture', 'Crypto Basics', 'African Cuisine', 'Sports', 'Science'].map((topic, index) => (
-                  <div key={index} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-2">{topic}</h3>
-                    <div className="flex items-center justify-between">
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
-                        <div 
-                          className="bg-success-600 h-2 rounded-full" 
-                          style={{ width: `${Math.random() * 100}%` }}
-                        ></div>
+                {['culture', 'crypto', 'food', 'sports', 'science', 'business'].map((topicId) => {
+                  const topicNames = {
+                    culture: 'Cultural Studies',
+                    crypto: 'Crypto & Web3',
+                    food: 'African Cuisine',
+                    sports: 'Sports & Fitness',
+                    science: 'Science & Technology',
+                    business: 'Business & Entrepreneurship'
+                  };
+                  
+                  // Get real progress from localStorage
+                  const topicXP = Number(localStorage.getItem(`sf_topic_xp_${topicId}`) || '0');
+                  const topicQuizzes = Number(localStorage.getItem(`sf_topic_quizzes_${topicId}`) || '0');
+                  const progress = topicQuizzes > 0 ? Math.min(100, (topicXP / (topicQuizzes * 100)) * 100) : 0;
+                  
+                  return (
+                    <div key={topicId} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                      <h3 className="font-medium text-gray-900 dark:text-white mb-2">{topicNames[topicId]}</h3>
+                      <div className="flex items-center justify-between">
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
+                          <div 
+                            className="bg-success-600 h-2 rounded-full" 
+                            style={{ width: `${progress}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">{Math.round(progress)}%</span>
                       </div>
-                      <span className="text-sm text-gray-600 dark:text-gray-300">60%</span>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </motion.div>

@@ -171,6 +171,37 @@ export const courseContent = {
         }
       ]
     },
+    tw: {
+      title: "Nneɛma Ahorow a Ɛfa Afrika Ho",
+      description: "Sua nneɛma ahorow a ɛfa Afrika ho, nneɛma a ɛyɛ adeɛ, afahyɛ, ne amammerɛ.",
+      lessons: [
+        {
+          id: 1,
+          title: "Nneɛma a Ɛfa Afrika Ho",
+          content: `Afrika yɛ kontinent a ɛwɔ aman ahorow bɛyɛ 3,000 ne amammerɛ a ɛyɛ adeɛ.
+
+**Nneɛma a Ɛyɛ Adɛɛ:**
+• **Kasa**: Kasa ahorow bɛyɛ 2,000 a wɔka wɔ kontinent yi so
+• **Ntadeɛ**: Kente, Dashiki, Boubou, ne ntadeɛ afoforɔ
+• **Nnwom ne Nsɛɛ**: Nnwom ahorow ne nsɛɛ ahorow
+• **Nneɛma a Ɛfa Wɔn Ho**: Wɔn ho yɛɛ, wɔn yɛɛ adeɛ`,
+          duration: "8 minutes",
+          type: "text"
+        },
+        {
+          id: 2,
+          title: "Afahyɛ ahorow",
+          content: `Afahyɛ ahorow a ɛfa Afrika ho yɛ nneɛma a ɛyɛ adeɛ a ɛma wɔn ho yɛɛ.
+
+**Afahyɛ ahorow:**
+• **Homowo**: Afahyɛ a ɛfa Ga ho
+• **Timkat**: Afahyɛ a ɛfa Ethiopia ho
+• **Umhlanga**: Afahyɛ a ɛfa Swaziland ho`,
+          duration: "10 minutes",
+          type: "text"
+        }
+      ]
+    },
     yo: {
       title: "Ìdánilẹ́kọ̀ọ́ àti Àṣà Áfríkà",
       description: "Kẹ́kọ̀ọ́ nípa ọrọ̀ àti àṣà Áfríkà tó ní ìtàn tó jinlẹ̀.",
@@ -310,6 +341,25 @@ export const courseContent = {
     }
   },
   food: {
+    tw: {
+      title: "Aduan a Ɛfa Afrika Ho",
+      description: "Sua aduan ahorow a ɛfa Afrika ho, aduan ahorow a ɛyɛ adeɛ.",
+      lessons: [
+        {
+          id: 1,
+          title: "Aduan a Ɛfa Afrika Ho",
+          content: `Aduan a ɛfa Afrika ho yɛ aduan ahorow a ɛyɛ adeɛ.
+
+**Aduan ahorow:**
+• **Rice**: Jollof rice, rice ne beans
+• **Cassava**: Fufu, garri
+• **Plantains**: Plantain a wɔayɛ
+• **Yams**: Yam a wɔapam`,
+          duration: "10 minutes",
+          type: "text"
+        }
+      ]
+    },
     en: {
       title: "African Cuisine & Culinary Traditions",
       description: "Explore the diverse and flavorful world of African cooking, from traditional recipes to modern fusion cuisine.",
