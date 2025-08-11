@@ -66,7 +66,7 @@ const SKILL_NFT_ABI = [
 // Contract addresses from environment
 export const XP_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS_XP;
 export const SKILL_NFT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS_SKILL;
-export const EDUCHAIN_ID = Number(process.env.NEXT_PUBLIC_EDUCHAIN_ID || '656476');
+export const EDUCHAIN_ID = Number(process.env.NEXT_PUBLIC_EDUCHAIN_ID || '653508');
 
 // Check if user is on correct network
 export const isCorrectNetwork = (chainId) => {
@@ -95,16 +95,9 @@ export const mintXPForQuiz = async (walletClient, userAddress, xpAmount, quizDet
       throw new Error('Wallet not connected');
     }
 
-    // For Vercel deployment, let's use a mock response
-    if (process.env.NODE_ENV === 'production') {
-      // Mock successful transaction for demo
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      return {
-        success: true,
-        txHash: `0x${'demo'.repeat(16)}`,
-        blockNumber: Math.floor(Math.random() * 1000000),
-        gasUsed: '21000'
-      };
+    // Check if contract addresses are configured
+    if (!XP_TOKEN_ADDRESS || XP_TOKEN_ADDRESS === '0x0000000000000000000000000000000000000000') {
+      throw new Error('XP Token contract address not configured. Please set NEXT_PUBLIC_CONTRACT_ADDRESS_XP in your environment variables.');
     }
 
     const signer = walletClient;
