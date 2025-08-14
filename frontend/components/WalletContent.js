@@ -17,7 +17,14 @@ import {
   ExclamationTriangleIcon,
   PlusIcon
 } from '@heroicons/react/24/outline';
-import { getXPBalance, getSkillNFTCount } from '../utils/blockchain';
+import { TrophyIcon } from '@heroicons/react/24/solid';
+import { 
+  getXPBalance, 
+  getSkillNFTCount, 
+  getTotalXPEarned, 
+  getXPByActivity,
+  switchToEduChain 
+} from '../utils/blockchain';
 
 export default function WalletContent() {
   const { isDark, setIsDark } = useNavigation();
@@ -37,11 +44,20 @@ export default function WalletContent() {
   const [isAddingNetwork, setIsAddingNetwork] = useState(false);
   const [xpBalance, setXpBalance] = useState('0');
   const [nftCount, setNftCount] = useState('0');
+  const [totalXPEarned, setTotalXPEarned] = useState('0');
+  const [quizXP, setQuizXP] = useState('0');
+  const [isLoadingBalances, setIsLoadingBalances] = useState(false);
+
+  // EduChain Testnet Configuration
+  const EDUCHAIN_ID = 656476; // Decimal chain ID
+  const EDUCHAIN_HEX = '0xa06c'; // Hexadecimal chain ID
+  const isEduChain = chain?.id === EDUCHAIN_ID;
 
   // Load real blockchain data
   useEffect(() => {
     const loadBlockchainData = async () => {
-      if (isConnected && address && provider) {
+      if (isConnected && address && provider && isEduChain) {
+        setIsLoadingBalances(true);
         try {
           // Get XP balance from smart contract
           const xpBal = await getXPBalance(provider, address);
@@ -50,32 +66,29 @@ export default function WalletContent() {
           // Get NFT count from smart contract
           const nftCnt = await getSkillNFTCount(provider, address);
           setNftCount(nftCnt);
+          
+          // Get total XP earned
+          const totalXP = await getTotalXPEarned(provider, address);
+          setTotalXPEarned(totalXP);
+          
+          // Get XP earned from quizzes
+          const quizXPAmount = await getXPByActivity(provider, address, 'quiz');
+          setQuizXP(quizXPAmount);
         } catch (error) {
           console.error('Error loading blockchain data:', error);
+          // Set default values if contracts not deployed yet
+          setXpBalance('0');
+          setNftCount('0');
+          setTotalXPEarned('0');
+          setQuizXP('0');
+        } finally {
+          setIsLoadingBalances(false);
         }
       }
     };
 
     loadBlockchainData();
-  }, [isConnected, address, provider]);
-
-  // Real wallet data from blockchain
-  const walletData = {
-    xpBalance: xpBalance,
-    eduBalance: balance?.formatted || '0.0',
-    nftCount: parseInt(nftCount) || 0,
-    transactions: [
-      { type: 'receive', amount: '50 XP', from: 'Quiz Completion', hash: '0x1234...5678', time: '2 min ago', status: 'confirmed' },
-      { type: 'send', amount: '0.001 EDU', to: '0x9876...5432', hash: '0x8765...4321', time: '1 hour ago', status: 'confirmed' },
-      { type: 'receive', amount: '100 XP', from: 'NFT Mint Reward', hash: '0x4321...8765', time: '3 hours ago', status: 'confirmed' },
-      { type: 'swap', amount: '25 XP → 0.0025 EDU', hash: '0x5678...1234', time: '1 day ago', status: 'confirmed' }
-    ]
-  };
-
-  // EduChain Testnet Configuration
-  const EDUCHAIN_ID = 656476; // Decimal chain ID
-  const EDUCHAIN_HEX = '0xa06c'; // Hexadecimal chain ID
-  const isEduChain = chain?.id === EDUCHAIN_ID;
+  }, [isConnected, address, provider, isEduChain]);
 
   // Enhanced network switching function
   const handleNetworkSwitch = async () => {
@@ -86,42 +99,11 @@ export default function WalletContent() {
 
     setIsAddingNetwork(true);
     try {
-      // Try to switch to EduChain first
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: EDUCHAIN_HEX }],
-      });
-    } catch (switchError) {
-      console.log('Switch error:', switchError);
-      // If network doesn't exist, add it
-      if (switchError.code === 4902) {
-        try {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [
-              {
-                chainId: EDUCHAIN_HEX,
-                                 chainName: 'EDU Chain Testnet',
-                 rpcUrls: ['https://rpc.open-campus-codex.gelato.digital'],
-                 nativeCurrency: {
-                   name: 'EDU',
-                   symbol: 'EDU',
-                   decimals: 18,
-                 },
-                 blockExplorerUrls: ['https://explorer.open-campus-codex.gelato.digital'],
-                iconUrls: ['https://opencampus.xyz/favicon.ico'],
-              },
-            ],
-          });
-          console.log('EduChain network added successfully');
-        } catch (addError) {
-          console.error('Failed to add EduChain network:', addError);
-          alert('Failed to add EduChain network. Please try again.');
-        }
-      } else {
-        console.error('Failed to switch to EduChain network:', switchError);
-        alert('Failed to switch to EduChain network. Please try again.');
-      }
+      await switchToEduChain();
+      console.log('Successfully switched to EduChain network');
+    } catch (error) {
+      console.error('Failed to switch network:', error);
+      alert('Failed to switch to EduChain network. Please try again.');
     } finally {
       setIsAddingNetwork(false);
     }
@@ -140,6 +122,21 @@ export default function WalletContent() {
   const handleSwap = () => {
     // Implement swap functionality
     console.log('Swapping', swapAmount, swapFromToken, 'to', swapToToken);
+  };
+
+  // Real wallet data from blockchain
+  const walletData = {
+    xpBalance: xpBalance,
+    eduBalance: balance?.formatted || '0.0',
+    nftCount: parseInt(nftCount) || 0,
+    totalXPEarned: totalXPEarned,
+    quizXP: quizXP,
+    transactions: [
+      { type: 'receive', amount: '50 XP', from: 'Quiz Completion', hash: '0x1234...5678', time: '2 min ago', status: 'confirmed' },
+      { type: 'send', amount: '0.001 EDU', to: '0x9876...5432', hash: '0x8765...4321', time: '1 hour ago', status: 'confirmed' },
+      { type: 'receive', amount: '100 XP', from: 'NFT Mint Reward', hash: '0x4321...8765', time: '3 hours ago', status: 'confirmed' },
+      { type: 'swap', amount: '25 XP → 0.0025 EDU', hash: '0x5678...1234', time: '1 day ago', status: 'confirmed' }
+    ]
   };
 
   return (
@@ -218,55 +215,115 @@ export default function WalletContent() {
         )}
 
         {/* Wallet Overview */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }} 
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 mb-6"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center">
-              <WalletIcon className="h-8 w-8 text-primary-600 mr-3" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">ScholarForge Wallet</h1>
-                <p className="text-gray-600 dark:text-gray-300">EduChain Testnet</p>
+        {isConnected && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          >
+            {/* XP Balance */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">XP Balance</p>
+                  <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                    {isLoadingBalances ? (
+                      <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-8 w-20 rounded"></div>
+                    ) : (
+                      `${parseFloat(xpBalance).toFixed(2)} XP`
+                    )}
+                  </p>
+                </div>
+                <div className="p-3 bg-primary-100 dark:bg-primary-900/20 rounded-lg">
+                  <CreditCardIcon className="h-6 w-6 text-primary-600" />
+                </div>
               </div>
             </div>
-            {isConnected && (
-              <div className="flex items-center bg-green-100 dark:bg-green-900/20 px-3 py-1 rounded-full">
-                <CheckCircleIcon className="h-4 w-4 text-green-600 mr-1" />
-                <span className="text-green-800 dark:text-green-200 text-sm">Connected</span>
-              </div>
-            )}
-          </div>
 
-          {/* Address & Balance */}
-          {isConnected && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Wallet Address</h3>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-mono text-gray-900 dark:text-white">
-                    {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '—'}
-                  </span>
-                  <button 
-                    onClick={() => copyToClipboard(address || '')}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            {/* EDU Balance */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">EDU Balance</p>
+                  <p className="text-2xl font-bold text-secondary-600 dark:text-secondary-400">
+                    {balance ? `${parseFloat(balance.formatted).toFixed(4)} EDU` : '0.0000 EDU'}
+                  </p>
+                </div>
+                <div className="p-3 bg-secondary-100 dark:bg-secondary-900/20 rounded-lg">
+                  <WalletIcon className="h-6 w-6 text-secondary-600" />
+                </div>
+              </div>
+            </div>
+
+            {/* NFT Count */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Skill NFTs</p>
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    {isLoadingBalances ? (
+                      <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-8 w-16 rounded"></div>
+                    ) : (
+                      nftCount
+                    )}
+                  </p>
+                </div>
+                <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                  <CreditCardIcon className="h-6 w-6 text-purple-600" />
+                </div>
+              </div>
+            </div>
+
+            {/* Total XP Earned */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total XP Earned</p>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {isLoadingBalances ? (
+                      <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-8 w-20 rounded"></div>
+                    ) : (
+                      `${parseFloat(totalXPEarned).toFixed(2)} XP`
+                    )}
+                  </p>
+                </div>
+                <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                  <TrophyIcon className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Wallet Address Display */}
+        {isConnected && address && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 mb-8"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Wallet Address</h3>
+                <div className="flex items-center space-x-3">
+                  <code className="text-sm bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-lg font-mono">
+                    {address}
+                  </code>
+                  <button
+                    onClick={() => copyToClipboard(address)}
+                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
                   >
-                    <ClipboardDocumentIcon className="h-4 w-4" />
+                    <ClipboardDocumentIcon className="h-5 w-5" />
                   </button>
                 </div>
               </div>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">EDU Balance</h3>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{walletData.eduBalance} EDU</p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">XP Balance</h3>
-                <p className="text-xl font-bold text-primary-600">{walletData.xpBalance} XP</p>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm text-green-600 dark:text-green-400">Connected</span>
               </div>
             </div>
-          )}
-        </motion.div>
+          </motion.div>
+        )}
 
         {/* Wallet Tabs */}
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden">

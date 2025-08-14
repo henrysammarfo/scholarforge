@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
-import { getTranslation } from '../utils/localization';
+import { getTranslation, getCurrentLanguage } from '../utils/localization';
 import { 
   TrophyIcon, 
   ClockIcon,
@@ -27,16 +27,60 @@ export default function Learn() {
     { code: 'hi', name: 'Hindi', flag: '🇮🇳', description: 'Indian subcontinent' }
   ];
 
-  const topics = [
-    { id: 'culture', name: 'Cultural Studies', icon: '🏛️', description: 'Learn about African cultures and traditions' },
-    { id: 'crypto', name: 'Crypto & Web3', icon: '₿', description: 'Blockchain, cryptocurrency, and digital finance' },
-    { id: 'food', name: 'African Cuisine', icon: '🍲', description: 'Traditional and modern African cooking' },
-    { id: 'sports', name: 'Sports & Fitness', icon: '⚽', description: 'African sports, fitness, and wellness' },
-    { id: 'science', name: 'Science & Tech', icon: '🔬', description: 'STEM education and technology' },
-    { id: 'business', name: 'Business & Entrepreneurship', icon: '💼', description: 'Business skills and startup knowledge' },
-    { id: 'history', name: 'African History', icon: '📚', description: 'Rich history of African civilizations' },
-    { id: 'arts', name: 'Arts & Music', icon: '🎨', description: 'African arts, music, and creative expression' }
-  ];
+  // Get localized topics based on selected language
+  const getLocalizedTopics = (langCode) => {
+    const topics = [
+      { 
+        id: 'culture', 
+        name: getTranslation('culturalStudies', langCode), 
+        icon: '🏛️', 
+        description: getTranslation('culturalStudiesDesc', langCode) 
+      },
+      { 
+        id: 'crypto', 
+        name: getTranslation('cryptoWeb3', langCode), 
+        icon: '₿', 
+        description: getTranslation('cryptoWeb3Desc', langCode) 
+      },
+      { 
+        id: 'food', 
+        name: getTranslation('africanCuisine', langCode), 
+        icon: '🍲', 
+        description: getTranslation('africanCuisineDesc', langCode) 
+      },
+      { 
+        id: 'sports', 
+        name: getTranslation('sportsFitness', langCode), 
+        icon: '⚽', 
+        description: getTranslation('sportsFitnessDesc', langCode) 
+      },
+      { 
+        id: 'science', 
+        name: getTranslation('scienceTech', langCode), 
+        icon: '🔬', 
+        description: getTranslation('scienceTechDesc', langCode) 
+      },
+      { 
+        id: 'business', 
+        name: getTranslation('businessEntrepreneurship', langCode), 
+        icon: '💼', 
+        description: getTranslation('businessEntrepreneurshipDesc', langCode) 
+      },
+      { 
+        id: 'history', 
+        name: getTranslation('africanHistory', langCode), 
+        icon: '📚', 
+        description: getTranslation('africanHistoryDesc', langCode) 
+      },
+      { 
+        id: 'arts', 
+        name: getTranslation('artsMusic', langCode), 
+        icon: '🎨', 
+        description: getTranslation('artsMusicDesc', langCode) 
+      }
+    ];
+    return topics;
+  };
 
   // Load saved language and topic on component mount
   useEffect(() => {
@@ -55,7 +99,7 @@ export default function Learn() {
       }
 
       if (savedTopicId && savedTopicName && selectedLanguage) {
-        const savedTopic = topics.find(topic => topic.id === savedTopicId);
+        const savedTopic = getLocalizedTopics(savedLanguageCode || 'en').find(topic => topic.id === savedTopicId);
         if (savedTopic) {
           setSelectedTopic(savedTopic);
         }
@@ -98,6 +142,7 @@ export default function Learn() {
     setSelectedLanguage(null);
     setSelectedTopic(null);
     setCurrentLangCode('en');
+    
     try {
       localStorage.removeItem('sf_selected_language_code');
       localStorage.removeItem('sf_selected_language_name');
@@ -108,103 +153,127 @@ export default function Learn() {
     }
   };
 
+  const currentTopics = getLocalizedTopics(currentLangCode);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
       <Head>
-        <title>Learn - ScholarForge</title>
-        <meta name="description" content="Start learning in your preferred language" />
+        <title>{getTranslation('learn', currentLangCode)} - ScholarForge</title>
       </Head>
-
       <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!selectedLanguage ? (
-          // Language Selection
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Hero Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
+          <div className="flex items-center justify-center mb-6">
+            <TrophyIcon className="h-16 w-16 text-primary-600 mr-4" />
+            <div className="text-left">
+              <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-2">
+                {getTranslation('chooseLanguage', currentLangCode)}
+              </h1>
+              <p className="text-xl text-gray-600 dark:text-gray-300">
+                {getTranslation('selectLanguage', currentLangCode)}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Language Selection */}
+        {!selectedLanguage && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }}
-            className="text-center"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
           >
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              {getTranslation('chooseLanguage', currentLangCode)}
-            </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-              {getTranslation('selectLanguage', currentLangCode)}
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {languages.map((language) => (
-                <motion.button
-                  key={language.code}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleLanguageSelect(language)}
-                  className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary-200"
-                >
-                  <div className="text-4xl mb-2">{language.flag}</div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
+            {languages.map((language, index) => (
+              <motion.div
+                key={language.code}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                onClick={() => handleLanguageSelect(language)}
+                className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+              >
+                <div className="text-center">
+                  <div className="text-4xl mb-4">{language.flag}</div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-primary-600 transition-colors">
                     {language.name}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-300 text-sm">
                     {language.description}
                   </p>
-                </motion.button>
-              ))}
-            </div>
+                </div>
+              </motion.div>
+            ))}
           </motion.div>
-        ) : !selectedTopic ? (
-          // Topic Selection
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
+        )}
+
+        {/* Topic Selection */}
+        {selectedLanguage && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }}
-            className="text-center"
+            className="space-y-8"
           >
-            <div className="mb-8">
-              <div className="flex items-center justify-center space-x-4 mb-4">
-                <button
-                  onClick={resetSelections}
-                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                >
-                  {getTranslation('backToLanguages', currentLangCode)}
-                </button>
-                <span className="text-gray-400">|</span>
-                <button
-                  onClick={() => setSelectedLanguage(null)}
-                  className="text-primary-600 hover:text-primary-700"
-                >
-                  Change Language
-                </button>
+            {/* Language Header */}
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-4">
+                <span className="text-3xl mr-3">{selectedLanguage.flag}</span>
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {getTranslation('learningIn', currentLangCode)} {selectedLanguage.name}
+                </h2>
               </div>
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                {getTranslation('chooseTopic', currentLangCode)}
-              </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-300 mb-2">
-                {getTranslation('learningIn', currentLangCode)} <span className="font-semibold text-primary-600">{selectedLanguage.name}</span>
-              </p>
-              <p className="text-gray-600 dark:text-gray-300 mb-8">
+              <p className="text-lg text-gray-600 dark:text-gray-300">
                 {getTranslation('selectTopic', currentLangCode)}
               </p>
             </div>
+
+            {/* Topics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {topics.map((topic) => (
-                <motion.button
+              {currentTopics.map((topic, index) => (
+                <motion.div
                   key={topic.id}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
                   onClick={() => handleTopicSelect(topic)}
-                  className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary-200"
+                  className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group"
                 >
-                  <div className="text-4xl mb-2">{topic.icon}</div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
-                    {topic.name}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-300 text-sm">
-                    {topic.description}
-                  </p>
-                </motion.button>
+                  <div className="text-center">
+                    <div className="text-4xl mb-4">{topic.icon}</div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-primary-600 transition-colors">
+                      {topic.name}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+                      {topic.description}
+                    </p>
+                    <div className="flex items-center justify-center text-primary-600 group-hover:text-primary-700 transition-colors">
+                      <span className="text-sm font-medium">
+                        {getTranslation('startLearning', currentLangCode)}
+                      </span>
+                      <ArrowRightIcon className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </motion.div>
               ))}
             </div>
+
+            {/* Back Button */}
+            <div className="text-center">
+              <button
+                onClick={resetSelections}
+                className="inline-flex items-center px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors duration-300"
+              >
+                <ArrowRightIcon className="h-5 w-5 mr-2 rotate-180" />
+                {getTranslation('backToLanguages', currentLangCode)}
+              </button>
+            </div>
           </motion.div>
-        ) : null}
+        )}
       </div>
     </div>
   );
