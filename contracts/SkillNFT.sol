@@ -17,8 +17,20 @@ contract SkillNFT is ERC721URIStorage, ERC721Pausable, AccessControl {
     /// @notice Next token ID to mint
     uint256 public nextTokenId;
 
-    /// @notice Mapping from tokenId to skill/level metadata (optional, for gamification)
+    /// @notice Mapping from tokenId to skill/level metadata
     mapping(uint256 => string) public skillLevel;
+    
+    /// @notice Mapping from tokenId to course completion details
+    mapping(uint256 => CourseCompletion) public courseCompletions;
+
+    /// @notice Course completion structure
+    struct CourseCompletion {
+        string courseName;
+        string language;
+        uint256 completionDate;
+        uint256 score;
+        string topic;
+    }
 
     /// @notice Emitted when a Skill NFT is minted
     event SkillMinted(address indexed to, uint256 indexed tokenId, string skill, string tokenURI);
@@ -44,6 +56,42 @@ contract SkillNFT is ERC721URIStorage, ERC721Pausable, AccessControl {
         _setTokenURI(tokenId, tokenURI);
         skillLevel[tokenId] = skill;
         emit SkillMinted(to, tokenId, skill, tokenURI);
+        nextTokenId++;
+    }
+
+    /**
+     * @notice Mint a course completion NFT with detailed metadata
+     * @param to Recipient address
+     * @param courseName Name of the completed course
+     * @param language Language of the course
+     * @param score Completion score
+     * @param topic Course topic
+     * @param tokenURI Metadata URI
+     * @return tokenId The minted token ID
+     */
+    function mintCourseCompletion(
+        address to, 
+        string calldata courseName, 
+        string calldata language, 
+        uint256 score, 
+        string calldata topic, 
+        string calldata tokenURI
+    ) external onlyRole(QUIZMASTER_ROLE) whenNotPaused returns (uint256 tokenId) {
+        tokenId = nextTokenId;
+        _safeMint(to, tokenId);
+        _setTokenURI(tokenId, tokenURI);
+        
+        skillLevel[tokenId] = string(abi.encodePacked("Course: ", courseName));
+        
+        courseCompletions[tokenId] = CourseCompletion({
+            courseName: courseName,
+            language: language,
+            completionDate: block.timestamp,
+            score: score,
+            topic: topic
+        });
+        
+        emit SkillMinted(to, tokenId, skillLevel[tokenId], tokenURI);
         nextTokenId++;
     }
 
@@ -75,6 +123,16 @@ contract SkillNFT is ERC721URIStorage, ERC721Pausable, AccessControl {
         for (uint256 i = 0; i < recipients.length; i++) {
             mintSkill(recipients[i], skills[i], uris[i]);
         }
+    }
+
+    /**
+     * @notice Get course completion details for a token
+     * @param tokenId The token ID
+     * @return Course completion details
+     */
+    function getCourseCompletion(uint256 tokenId) external view returns (CourseCompletion memory) {
+        require(_exists(tokenId), "Token does not exist");
+        return courseCompletions[tokenId];
     }
 
     /**

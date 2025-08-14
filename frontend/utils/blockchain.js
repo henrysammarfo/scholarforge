@@ -1,12 +1,13 @@
 import { ethers } from 'ethers';
 
-// XP Token ABI - just the functions we need
+// XP Token ABI - updated for new contract interface
 const XP_TOKEN_ABI = [
   {
     "inputs": [
       {"internalType": "address", "name": "to", "type": "address"},
       {"internalType": "uint256", "name": "amount", "type": "uint256"},
-      {"internalType": "string", "name": "reason", "type": "string"}
+      {"internalType": "string", "name": "reason", "type": "string"},
+      {"internalType": "string", "name": "activity", "type": "string"}
     ],
     "name": "mint",
     "outputs": [],
@@ -15,9 +16,23 @@ const XP_TOKEN_ABI = [
   },
   {
     "inputs": [
+      {"internalType": "address", "name": "user", "type": "address"},
+      {"internalType": "uint256", "name": "amount", "type": "uint256"},
+      {"internalType": "string", "name": "course", "type": "string"},
+      {"internalType": "string", "name": "language", "type": "string"},
+      {"internalType": "uint256", "name": "score", "type": "uint256"}
+    ],
+    "name": "mintQuizXP",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {"internalType": "address[]", "name": "recipients", "type": "address[]"},
       {"internalType": "uint256[]", "name": "amounts", "type": "uint256[]"},
-      {"internalType": "string[]", "name": "reasons", "type": "string[]"}
+      {"internalType": "string[]", "name": "reasons", "type": "string[]"},
+      {"internalType": "string[]", "name": "activities", "type": "string[]"}
     ],
     "name": "batchMint",
     "outputs": [],
@@ -30,19 +45,49 @@ const XP_TOKEN_ABI = [
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "address", "name": "user", "type": "address"}],
+    "name": "getTotalXPEarned",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "user", "type": "address"},
+      {"internalType": "string", "name": "activity", "type": "string"}
+    ],
+    "name": "getXPByActivity",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
   }
 ];
 
-// Skill NFT ABI - just the functions we need
+// Skill NFT ABI - updated for new contract interface
 const SKILL_NFT_ABI = [
   {
     "inputs": [
       {"internalType": "address", "name": "to", "type": "address"},
       {"internalType": "string", "name": "skill", "type": "string"},
-      {"internalType": "string", "name": "level", "type": "string"},
-      {"internalType": "string", "name": "evidence", "type": "string"}
+      {"internalType": "string", "name": "tokenURI", "type": "string"}
     ],
     "name": "mintSkill",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "to", "type": "address"},
+      {"internalType": "string", "name": "courseName", "type": "string"},
+      {"internalType": "string", "name": "language", "type": "string"},
+      {"internalType": "uint256", "name": "score", "type": "uint256"},
+      {"internalType": "string", "name": "topic", "type": "string"},
+      {"internalType": "string", "name": "tokenURI", "type": "string"}
+    ],
+    "name": "mintCourseCompletion",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -58,6 +103,26 @@ const SKILL_NFT_ABI = [
     "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
     "name": "tokenURI",
     "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+    "name": "getCourseCompletion",
+    "outputs": [
+      {
+        "components": [
+          {"internalType": "string", "name": "courseName", "type": "string"},
+          {"internalType": "string", "name": "language", "type": "string"},
+          {"internalType": "uint256", "name": "completionDate", "type": "uint256"},
+          {"internalType": "uint256", "name": "score", "type": "uint256"},
+          {"internalType": "string", "name": "topic", "type": "string"}
+        ],
+        "internalType": "struct SkillNFT.CourseCompletion",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
     "stateMutability": "view",
     "type": "function"
   }
@@ -102,14 +167,21 @@ export const mintXPForQuiz = async (walletClient, userAddress, xpAmount, quizDet
 
     const signer = walletClient;
     const contract = getXPContract(signer);
-    const reason = `Quiz completed: ${quizDetails.topic} (${quizDetails.language})`;
     
     // Convert XP amount to wei (assuming 18 decimals)
     const amount = ethers.parseUnits(xpAmount.toString(), 18);
     
-    console.log('Minting XP:', { userAddress, amount: amount.toString(), reason });
+    console.log('Minting XP for quiz:', { userAddress, amount: amount.toString(), quizDetails });
     
-    const tx = await contract.mint(userAddress, amount, reason);
+    // Use the new mintQuizXP function
+    const tx = await contract.mintQuizXP(
+      userAddress, 
+      amount, 
+      quizDetails.topic || 'Unknown Course', 
+      quizDetails.language || 'en', 
+      quizDetails.score || 100
+    );
+    
     console.log('Transaction sent:', tx.hash);
     
     const receipt = await tx.wait();
@@ -140,18 +212,37 @@ export const mintSkillNFT = async (walletClient, userAddress, skillDetails) => {
     const signer = walletClient;
     const contract = getSkillNFTContract(signer);
     
-    const { skill, level, topic, language, completionPercentage } = skillDetails;
-    const evidence = `Completed ${topic} course in ${language} with ${completionPercentage}% score`;
+    const { courseName, language, score, topic } = skillDetails;
     
-    console.log('Minting Skill NFT:', { userAddress, skill, level, evidence });
+    // Create metadata URI for the NFT
+    const metadata = {
+      name: `Course Completion: ${courseName}`,
+      description: `Successfully completed ${courseName} in ${language}`,
+      image: "https://via.placeholder.com/400x400/4F46E5/FFFFFF?text=Course+Complete",
+      attributes: [
+        { trait_type: "Course", value: courseName },
+        { trait_type: "Language", value: language },
+        { trait_type: "Score", value: score },
+        { trait_type: "Topic", value: topic },
+        { trait_type: "Completion Date", value: new Date().toISOString() }
+      ]
+    };
     
-    // Estimate gas first
-    const gasEstimate = await contract.mintSkill.estimateGas(userAddress, skill, evidence);
-    console.log('Gas estimate:', gasEstimate.toString());
+    // For now, we'll use a placeholder URI - in production, you'd upload to IPFS
+    const tokenURI = `data:application/json;base64,${btoa(JSON.stringify(metadata))}`;
     
-    const tx = await contract.mintSkill(userAddress, skill, evidence, {
-      gasLimit: gasEstimate.mul(120).div(100) // Add 20% buffer
-    });
+    console.log('Minting Skill NFT:', { userAddress, courseName, language, score, topic });
+    
+    // Use the new mintCourseCompletion function
+    const tx = await contract.mintCourseCompletion(
+      userAddress, 
+      courseName, 
+      language, 
+      score, 
+      topic, 
+      tokenURI
+    );
+    
     console.log('Transaction sent:', tx.hash);
     
     const receipt = await tx.wait();
@@ -192,7 +283,7 @@ export const mintSkillNFT = async (walletClient, userAddress, skillDetails) => {
 // Get XP balance with real blockchain data
 export const getXPBalance = async (provider, userAddress) => {
   try {
-    if (!provider || !userAddress) return '0';
+    if (!provider || !userAddress || !XP_TOKEN_ADDRESS) return '0';
     
     const contract = new ethers.Contract(XP_TOKEN_ADDRESS, XP_TOKEN_ABI, provider);
     const balance = await contract.balanceOf(userAddress);
@@ -208,7 +299,7 @@ export const getXPBalance = async (provider, userAddress) => {
 // Get Skill NFT count with real blockchain data
 export const getSkillNFTCount = async (provider, userAddress) => {
   try {
-    if (!provider || !userAddress) return '0';
+    if (!provider || !userAddress || !SKILL_NFT_ADDRESS) return '0';
     
     const contract = new ethers.Contract(SKILL_NFT_ADDRESS, SKILL_NFT_ABI, provider);
     const balance = await contract.balanceOf(userAddress);
@@ -220,13 +311,43 @@ export const getSkillNFTCount = async (provider, userAddress) => {
   }
 };
 
+// Get total XP earned by user
+export const getTotalXPEarned = async (provider, userAddress) => {
+  try {
+    if (!provider || !userAddress || !XP_TOKEN_ADDRESS) return '0';
+    
+    const contract = new ethers.Contract(XP_TOKEN_ADDRESS, XP_TOKEN_ABI, provider);
+    const totalEarned = await contract.getTotalXPEarned(userAddress);
+    
+    return ethers.formatUnits(totalEarned, 18);
+  } catch (error) {
+    console.error('Error getting total XP earned:', error);
+    return '0';
+  }
+};
+
+// Get XP by activity
+export const getXPByActivity = async (provider, userAddress, activity) => {
+  try {
+    if (!provider || !userAddress || !XP_TOKEN_ADDRESS) return '0';
+    
+    const contract = new ethers.Contract(XP_TOKEN_ADDRESS, XP_TOKEN_ABI, provider);
+    const xpAmount = await contract.getXPByActivity(userAddress, activity);
+    
+    return ethers.formatUnits(xpAmount, 18);
+  } catch (error) {
+    console.error('Error getting XP by activity:', error);
+    return '0';
+  }
+};
+
 // Estimate gas for transactions
-export const estimateXPMintGas = async (signer, userAddress, xpAmount, reason) => {
+export const estimateXPMintGas = async (signer, userAddress, xpAmount, reason, activity) => {
   try {
     const contract = getXPContract(signer);
     const amount = ethers.parseUnits(xpAmount.toString(), 18);
     
-    const gasEstimate = await contract.mint.estimateGas(userAddress, amount, reason);
+    const gasEstimate = await contract.mint.estimateGas(userAddress, amount, reason, activity);
     return gasEstimate.toString();
   } catch (error) {
     console.error('Error estimating gas:', error);
@@ -234,11 +355,13 @@ export const estimateXPMintGas = async (signer, userAddress, xpAmount, reason) =
   }
 };
 
-export const estimateSkillNFTMintGas = async (signer, userAddress, skill, level, evidence) => {
+export const estimateSkillNFTMintGas = async (signer, userAddress, courseName, language, score, topic, tokenURI) => {
   try {
     const contract = getSkillNFTContract(signer);
     
-    const gasEstimate = await contract.mintSkill.estimateGas(userAddress, skill, level, evidence);
+    const gasEstimate = await contract.mintCourseCompletion.estimateGas(
+      userAddress, courseName, language, score, topic, tokenURI
+    );
     return gasEstimate.toString();
   } catch (error) {
     console.error('Error estimating gas:', error);
@@ -266,14 +389,14 @@ export const switchToEduChain = async () => {
           params: [
             {
               chainId: `0x${EDUCHAIN_ID.toString(16)}`,
-                             chainName: 'EDU Chain Testnet',
-               rpcUrls: [process.env.NEXT_PUBLIC_EDUCHAIN_RPC_URL],
-               nativeCurrency: {
-                 name: 'EDU',
-                 symbol: 'EDU',
-                 decimals: 18,
-               },
-               blockExplorerUrls: ['https://explorer.open-campus-codex.gelato.digital'],
+              chainName: 'EDU Chain Testnet',
+              rpcUrls: [process.env.NEXT_PUBLIC_EDUCHAIN_RPC_URL || 'https://rpc.open-campus-codex.gelato.digital'],
+              nativeCurrency: {
+                name: 'EDU',
+                symbol: 'EDU',
+                decimals: 18,
+              },
+              blockExplorerUrls: [process.env.NEXT_PUBLIC_EDUCHAIN_EXPLORER || 'https://explorer.open-campus-codex.gelato.digital'],
             },
           ],
         });

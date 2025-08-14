@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
+import { getTranslation, getCurrentLanguage } from '../utils/localization';
 import { 
   CpuChipIcon, 
   SparklesIcon, 
@@ -15,14 +16,38 @@ import {
 
 export default function CreateLesson() {
   const { isDark, setIsDark } = useNavigation();
-  const [prompt, setPrompt] = useState('Intro to Python for beginners');
+  const [prompt, setPrompt] = useState('');
   const [language, setLanguage] = useState('en');
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null);
+  const [currentLangCode, setCurrentLangCode] = useState('en');
+
+  // Load saved language preference on component mount
+  useEffect(() => {
+    try {
+      const savedLanguageCode = localStorage.getItem('sf_selected_language_code');
+      if (savedLanguageCode) {
+        setLanguage(savedLanguageCode);
+        setCurrentLangCode(savedLanguageCode);
+      }
+    } catch (error) {
+      console.error('Error loading saved language:', error);
+    }
+  }, []);
+
+  const languages = [
+    { code: 'en', name: 'English', flag: '🇺🇸' },
+    { code: 'tw', name: 'Twi', flag: '🇬🇭' },
+    { code: 'yo', name: 'Yoruba', flag: '🇳🇬' },
+    { code: 'sw', name: 'Swahili', flag: '🇰🇪' },
+    { code: 'fr', name: 'French', flag: '🇫🇷' },
+    { code: 'es', name: 'Spanish', flag: '🇲🇽' },
+    { code: 'hi', name: 'Hindi', flag: '🇮🇳' }
+  ];
 
   const generate = async () => {
     if (!prompt.trim()) {
-      alert('Please enter a lesson topic');
+      alert(getTranslation('pleaseEnterTopic', currentLangCode));
       return;
     }
 
@@ -56,16 +81,37 @@ export default function CreateLesson() {
       });
     } catch (error) {
       console.error('Error generating lesson:', error);
-      alert('Failed to generate lesson. Please try again.');
+      alert(getTranslation('failedToGenerate', currentLangCode));
     } finally {
       setGenerating(false);
     }
   };
 
+  const handleLanguageChange = (newLanguage) => {
+    setLanguage(newLanguage);
+    setCurrentLangCode(newLanguage);
+    try {
+      localStorage.setItem('sf_selected_language_code', newLanguage);
+    } catch (error) {
+      console.error('Error saving language preference:', error);
+    }
+  };
+
+  const publishLesson = () => {
+    if (!result) return;
+    
+    // Here you would typically save the lesson to your database
+    // For now, we'll just show a success message
+    alert(getTranslation('lessonPublished', currentLangCode));
+    
+    // Navigate to the lesson page or dashboard
+    window.location.href = `/course?lang=${language}&topic=custom&lesson=${encodeURIComponent(result.lessonTitle)}`;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
       <Head>
-        <title>Create Lesson (AI) - ScholarForge</title>
+        <title>{getTranslation('aiLessonCreator', currentLangCode)} - ScholarForge</title>
       </Head>
       <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -80,10 +126,10 @@ export default function CreateLesson() {
             <SparklesIcon className="h-8 w-8 text-secondary-500" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            AI-Powered Lesson Creator
+            {getTranslation('aiLessonCreator', currentLangCode)}
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Generate culturally-relevant educational content with African context using advanced AI
+            {getTranslation('aiLessonCreatorDesc', currentLangCode)}
           </p>
         </motion.div>
 
@@ -96,162 +142,155 @@ export default function CreateLesson() {
           >
             <div className="flex items-center mb-6">
               <BookOpenIcon className="h-6 w-6 text-primary-600 mr-2" />
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Create Your Lesson</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                {getTranslation('createYourLesson', currentLangCode)}
+              </h2>
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Lesson Topic
-                </label>
-                <textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="e.g., Introduction to Python programming for African developers, Blockchain applications for agriculture, Basic computer skills for students..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <GlobeAltIcon className="h-4 w-4 inline mr-1" />
-                  Language
-                </label>
-                <select 
-                  value={language} 
-                  onChange={(e) => setLanguage(e.target.value)} 
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="en">🇺🇸 English</option>
-                  <option value="tw">🇬🇭 Twi</option>
-                  <option value="yo">🇳🇬 Yoruba</option>
-                  <option value="sw">🇰🇪 Swahili</option>
-                  <option value="fr">🇫🇷 French</option>
-                </select>
-              </div>
-
-              <button 
-                onClick={generate} 
-                disabled={generating || !prompt.trim()} 
-                className="w-full bg-gradient-to-r from-primary-600 to-secondary-600 text-white px-6 py-4 rounded-lg hover:from-primary-700 hover:to-secondary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-medium text-lg transition-all duration-200"
-              >
-                {generating ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                    Generating AI Content...
-                  </>
-                ) : (
-                  <>
-                    <SparklesIcon className="h-5 w-5 mr-2" />
-                    Generate Lesson with AI
-                  </>
-                )}
-              </button>
-
-              <div className="grid grid-cols-3 gap-4 text-center text-sm text-gray-600 dark:text-gray-400">
-                <div>
-                  <CpuChipIcon className="h-8 w-8 mx-auto mb-2 text-primary-500" />
-                  AI-Powered
-                </div>
-                <div>
-                  <GlobeAltIcon className="h-8 w-8 mx-auto mb-2 text-secondary-500" />
-                  Multi-Language
-                </div>
-                <div>
-                  <BookOpenIcon className="h-8 w-8 mx-auto mb-2 text-success-500" />
-                  African Context
-                </div>
+            {/* Language Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {getTranslation('lessonLanguage', currentLangCode)}
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {languages.map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => handleLanguageChange(lang.code)}
+                    className={`p-3 rounded-lg border-2 transition-all duration-200 ${
+                      language === lang.code
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-1">{lang.flag}</div>
+                      <div className="text-sm font-medium">{lang.name}</div>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
+
+            {/* Topic Input */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {getTranslation('lessonTopic', currentLangCode)}
+              </label>
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder={getTranslation('lessonTopicPlaceholder', currentLangCode)}
+                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+                rows={4}
+              />
+            </div>
+
+            {/* Generate Button */}
+            <button
+              onClick={generate}
+              disabled={generating || !prompt.trim()}
+              className="w-full bg-primary-600 text-white py-3 px-6 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors duration-200"
+            >
+              {generating ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  {getTranslation('generating', currentLangCode)}...
+                </>
+              ) : (
+                <>
+                  <SparklesIcon className="h-5 w-5 mr-2" />
+                  {getTranslation('generateLesson', currentLangCode)}
+                </>
+              )}
+            </button>
           </motion.div>
 
-          {/* Output Section */}
+          {/* Result Section */}
           <motion.div 
             initial={{ opacity: 0, x: 20 }} 
             animate={{ opacity: 1, x: 0 }}
             className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6"
           >
-            {!result ? (
-              <div className="text-center text-gray-500 dark:text-gray-400 py-12">
-                <SparklesIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">AI-Generated Content Will Appear Here</h3>
-                <p className="text-sm">Enter a topic and click generate to create your lesson</p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-                    <CheckCircleIcon className="h-6 w-6 text-green-500 mr-2" />
-                    Generated Lesson
-                  </h2>
-                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                    <ClockIcon className="h-4 w-4 mr-1" />
-                    ~15 min read
-                  </div>
-                </div>
+            <div className="flex items-center mb-6">
+              <QuestionMarkCircleIcon className="h-6 w-6 text-secondary-600 mr-2" />
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                {getTranslation('generatedLesson', currentLangCode)}
+              </h2>
+            </div>
 
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            {result ? (
+              <div className="space-y-6">
+                {/* Lesson Title */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                     {result.lessonTitle}
                   </h3>
-                  <div className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300">
-                    <div className="whitespace-pre-line">{result.lessonContent}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {getTranslation('language', currentLangCode)}: {languages.find(l => l.code === language)?.name}
                   </div>
                 </div>
 
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                    <QuestionMarkCircleIcon className="h-5 w-5 mr-2" />
-                    Generated Quiz Questions ({result.quiz.length})
-                  </h3>
+                {/* Lesson Content */}
+                <div>
+                  <h4 className="text-md font-medium text-gray-900 dark:text-white mb-2">
+                    {getTranslation('lessonContent', currentLangCode)}
+                  </h4>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg max-h-40 overflow-y-auto">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                      {result.lessonContent}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quiz */}
+                <div>
+                  <h4 className="text-md font-medium text-gray-900 dark:text-white mb-2">
+                    {getTranslation('quiz', currentLangCode)} ({result.quiz.length} {getTranslation('questions', currentLangCode)})
+                  </h4>
                   <div className="space-y-3">
-                    {result.quiz.map((q, i) => (
-                      <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                        <p className="font-medium text-gray-900 dark:text-white mb-2">
-                          {i + 1}. {q.q}
+                    {result.quiz.map((question, index) => (
+                      <div key={index} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                          {index + 1}. {question.q}
                         </p>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          {q.a.map((option, idx) => (
-                            <div 
-                              key={idx} 
-                              className={`p-2 rounded ${
-                                idx === q.correct 
-                                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-                                  : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                        <div className="space-y-1">
+                          {question.a.map((option, optIndex) => (
+                            <div
+                              key={optIndex}
+                              className={`text-sm p-2 rounded ${
+                                optIndex === question.correct
+                                  ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200'
+                                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                               }`}
                             >
-                              {String.fromCharCode(65 + idx)}. {option}
+                              {String.fromCharCode(65 + optIndex)}. {option}
                             </div>
                           ))}
                         </div>
-                        {q.explanation && (
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 italic">
-                            💡 {q.explanation}
-                          </p>
-                        )}
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-2">
-                    🚀 Coming Soon Features
-                  </h4>
-                  <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                    <li>• Save and publish lessons to the platform</li>
-                    <li>• Share with other educators</li>
-                    <li>• Export to multiple formats</li>
-                    <li>• Integration with assessment tools</li>
-                  </ul>
-                </div>
+                {/* Publish Button */}
+                <button
+                  onClick={publishLesson}
+                  className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center justify-center"
+                >
+                  <CheckCircleIcon className="h-5 w-5 mr-2" />
+                  {getTranslation('publishLesson', currentLangCode)}
+                </button>
+              </div>
+            ) : (
+              <div className="text-center text-gray-500 dark:text-gray-400 py-12">
+                <BookOpenIcon className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                <p>{getTranslation('noLessonGenerated', currentLangCode)}</p>
+                <p className="text-sm mt-2">{getTranslation('generateLessonFirst', currentLangCode)}</p>
               </div>
             )}
           </motion.div>
         </div>
-
-
       </div>
     </div>
   );
