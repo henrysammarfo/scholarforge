@@ -23,9 +23,9 @@ import {
   getSkillNFTCount, 
   getTotalXPEarned, 
   getXPByActivity,
-  switchToEduChain 
+  switchToEduChain
 } from '../utils/blockchain';
-import { getTranslation, getCurrentLanguage } from '../utils/localization';
+import { ethers } from 'ethers';
 
 export default function WalletContent() {
   const { isDark, setIsDark } = useNavigation();
@@ -48,23 +48,30 @@ export default function WalletContent() {
   const [totalXPEarned, setTotalXPEarned] = useState('0');
   const [quizXP, setQuizXP] = useState('0');
   const [isLoadingBalances, setIsLoadingBalances] = useState(false);
-  const [currentLangCode, setCurrentLangCode] = useState('en');
+  const [eduBalance, setEduBalance] = useState('0');
 
   // EduChain Testnet Configuration
   const EDUCHAIN_ID = 656476; // Decimal chain ID
   const EDUCHAIN_HEX = '0xa06c'; // Hexadecimal chain ID
+  
   const isEduChain = chain?.id === EDUCHAIN_ID;
+  
+  // Debug logging
+  console.log('🔍 Wallet Network Check:', { 
+    chainId: chain?.id, 
+    chainName: chain?.name, 
+    isEduChain, 
+    isConnected, 
+    address: address?.slice(0, 10) + '...',
+    EDUCHAIN_ID
+  });
+  
 
-  // Load current language
-  useEffect(() => {
-    const lang = getCurrentLanguage();
-    setCurrentLangCode(lang);
-  }, []);
 
   // Load real blockchain data
   useEffect(() => {
     const loadBlockchainData = async () => {
-      if (isConnected && address && provider && isEduChain) {
+      if (isConnected && address && provider) {
         setIsLoadingBalances(true);
         try {
           // Get XP balance from smart contract
@@ -82,6 +89,16 @@ export default function WalletContent() {
           // Get XP earned from quizzes
           const quizXPAmount = await getXPByActivity(provider, address, 'quiz');
           setQuizXP(quizXPAmount);
+          
+          // Get EDU balance from EduChain (always fetch this)
+          try {
+            const educhainProvider = new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_EDUCHAIN_RPC_URL);
+            const eduBal = await educhainProvider.getBalance(address);
+            setEduBalance(ethers.utils.formatEther(eduBal));
+          } catch (error) {
+            console.error('Error loading EDU balance:', error);
+            setEduBalance('0');
+          }
         } catch (error) {
           console.error('Error loading blockchain data:', error);
           // Set default values if contracts not deployed yet
@@ -89,6 +106,7 @@ export default function WalletContent() {
           setNftCount('0');
           setTotalXPEarned('0');
           setQuizXP('0');
+          setEduBalance('0');
         } finally {
           setIsLoadingBalances(false);
         }
@@ -96,7 +114,7 @@ export default function WalletContent() {
     };
 
     loadBlockchainData();
-  }, [isConnected, address, provider, isEduChain]);
+  }, [isConnected, address, provider]);
 
   // Enhanced network switching function
   const handleNetworkSwitch = async () => {
@@ -135,7 +153,7 @@ export default function WalletContent() {
   // Real wallet data from blockchain
   const walletData = {
     xpBalance: xpBalance,
-    eduBalance: balance?.formatted || '0.0',
+    eduBalance: eduBalance,
     nftCount: parseInt(nftCount) || 0,
     totalXPEarned: totalXPEarned,
     quizXP: quizXP,
@@ -169,16 +187,16 @@ export default function WalletContent() {
                   <>
                     <CheckCircleIcon className="h-6 w-6 text-green-600 mr-3" />
                     <div>
-                                           <span className="text-green-800 dark:text-green-200 font-medium">{getTranslation('connectedToEduChain', currentLangCode)}</span>
-                     <p className="text-green-700 dark:text-green-300 text-sm mt-1">{getTranslation('chainId', currentLangCode)}: {chain?.id} • {getTranslation('network', currentLangCode)}: {chain?.name}</p>
+                      <span className="text-green-800 dark:text-green-200 font-medium">Connected to EduChain Testnet</span>
+                      <p className="text-green-700 dark:text-green-300 text-sm mt-1">Chain ID: {chain?.id} • Network: {chain?.name}</p>
                     </div>
                   </>
                 ) : (
                   <>
                     <ExclamationTriangleIcon className="h-6 w-6 text-orange-600 mr-3" />
                     <div>
-                                           <span className="text-orange-800 dark:text-orange-200 font-medium">{getTranslation('wrongNetworkDetected', currentLangCode)}</span>
-                     <p className="text-orange-700 dark:text-orange-300 text-sm mt-1">{getTranslation('current', currentLangCode)}: {chain?.name} (ID: {chain?.id}) • {getTranslation('required', currentLangCode)}: EduChain Testnet (ID: {EDUCHAIN_ID})</p>
+                                             <span className="text-orange-800 dark:text-orange-200 font-medium">Wrong Network Detected</span>
+                      <p className="text-orange-700 dark:text-orange-300 text-sm mt-1">Current: {chain?.name} (ID: {chain?.id}) • Required: EduChain Testnet (ID: {EDUCHAIN_ID})</p>
                     </div>
                   </>
                 )}
@@ -197,7 +215,7 @@ export default function WalletContent() {
                   ) : (
                     <>
                       <PlusIcon className="h-4 w-4 mr-2" />
-                                             {getTranslation('switchToEduChain', currentLangCode)}
+                      Switch to EduChain
                     </>
                   )}
                 </button>
@@ -222,6 +240,8 @@ export default function WalletContent() {
           </motion.div>
         )}
 
+
+
         {/* Wallet Overview */}
         {isConnected && (
           <motion.div 
@@ -233,7 +253,7 @@ export default function WalletContent() {
             <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
-                                     <p className="text-sm text-gray-600 dark:text-gray-400">{getTranslation('xpBalance', currentLangCode)}</p>
+                                     <p className="text-sm text-gray-600 dark:text-gray-400">XP Balance</p>
                   <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                     {isLoadingBalances ? (
                       <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-8 w-20 rounded"></div>
@@ -252,9 +272,13 @@ export default function WalletContent() {
             <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
-                                     <p className="text-sm text-gray-600 dark:text-gray-400">{getTranslation('eduBalance', currentLangCode)}</p>
+                                     <p className="text-sm text-gray-600 dark:text-gray-400">EDU Balance</p>
                   <p className="text-2xl font-bold text-secondary-600 dark:text-secondary-400">
-                    {balance ? `${parseFloat(balance.formatted).toFixed(4)} EDU` : '0.0000 EDU'}
+                    {isLoadingBalances ? (
+                      <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-8 w-20 rounded"></div>
+                    ) : (
+                      `${parseFloat(eduBalance).toFixed(4)} EDU`
+                    )}
                   </p>
                 </div>
                 <div className="p-3 bg-secondary-100 dark:bg-secondary-900/20 rounded-lg">
@@ -267,7 +291,7 @@ export default function WalletContent() {
             <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
-                                     <p className="text-sm text-gray-600 dark:text-gray-400">{getTranslation('skillNFTs', currentLangCode)}</p>
+                                     <p className="text-sm text-gray-600 dark:text-gray-400">Skill NFTs</p>
                   <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                     {isLoadingBalances ? (
                       <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-8 w-16 rounded"></div>
@@ -286,7 +310,7 @@ export default function WalletContent() {
             <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
-                                     <p className="text-sm text-gray-600 dark:text-gray-400">{getTranslation('totalXPEarned', currentLangCode)}</p>
+                                     <p className="text-sm text-gray-600 dark:text-gray-400">Total XP Earned</p>
                   <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                     {isLoadingBalances ? (
                       <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-8 w-20 rounded"></div>

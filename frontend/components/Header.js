@@ -96,7 +96,9 @@ export default function Header({ onToggleTheme, isDark }) {
               <ConnectButton 
                 chainStatus={{ smallScreen: 'icon', largeScreen: 'full' }} 
                 showBalance={false} 
-                accountStatus={{ smallScreen: 'avatar', largeScreen: 'full' }} 
+                accountStatus={{ smallScreen: 'avatar', largeScreen: 'full' }}
+                label="Connect Wallet"
+                showTestnetFaucet={false}
               />
             </div>
           </div>
