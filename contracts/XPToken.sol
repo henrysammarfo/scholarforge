@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 /**
  * @title ScholarForge XPToken (ERC20)
  * @notice XPToken is the core reward token for ScholarForge. Only QuizMasters can mint XP for quiz performance.
  * @dev Extensible for tipping, pausing, and future upgrades.
  */
-contract XPToken is ERC20Pausable, AccessControl {
+contract XPToken is ERC20, ERC20Pausable, ERC20Burnable, AccessControl {
     /// @notice Role for accounts allowed to mint XP (QuizMasters)
     bytes32 public constant QUIZMASTER_ROLE = keccak256("QUIZMASTER_ROLE");
 
@@ -57,12 +59,16 @@ contract XPToken is ERC20Pausable, AccessControl {
      * @param reason Reason for minting (e.g., quiz completion)
      * @param activity Type of activity (e.g., "quiz", "course", "lesson")
      */
-    function mint(address to, uint256 amount, string calldata reason, string calldata activity) external onlyRole(QUIZMASTER_ROLE) whenNotPaused {
+    function mintXP(address to, uint256 amount, string calldata reason, string calldata activity) external onlyRole(QUIZMASTER_ROLE) whenNotPaused {
         _mint(to, amount);
         xpByActivity[to][activity] += amount;
         totalXPEarned[to] += amount;
         emit XPMinted(to, amount, reason, activity);
     }
+
+
+
+
 
     /**
      * @notice Mint XP for quiz completion with detailed tracking
@@ -83,7 +89,7 @@ contract XPToken is ERC20Pausable, AccessControl {
         xpByActivity[user]["quiz"] += amount;
         totalXPEarned[user] += amount;
         
-        string memory reason = string(abi.encodePacked("Quiz completed: ", course, " (", language, ") - Score: ", score.toString()));
+        string memory reason = string(abi.encodePacked("Quiz completed: ", course, " (", language, ") - Score: ", _toString(score)));
         emit QuizXPEarned(user, amount, course, language, score);
         emit XPMinted(user, amount, reason, "quiz");
     }
@@ -108,9 +114,18 @@ contract XPToken is ERC20Pausable, AccessControl {
             "Array length mismatch"
         );
         for (uint256 i = 0; i < recipients.length; i++) {
-            mint(recipients[i], amounts[i], reasons[i], activities[i]);
+            _mint(recipients[i], amounts[i]);
+            xpByActivity[recipients[i]][activities[i]] += amounts[i];
+            totalXPEarned[recipients[i]] += amounts[i];
+            emit XPMinted(recipients[i], amounts[i], reasons[i], activities[i]);
         }
     }
+
+
+
+
+
+
 
     /**
      * @notice Get XP earned from specific activity
@@ -149,6 +164,39 @@ contract XPToken is ERC20Pausable, AccessControl {
      * @notice Unpause all token transfers and minting (admin only)
      */
     function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) { _unpause(); }
+
+    /**
+     * @dev Override _beforeTokenTransfer to respect pause state
+     */
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override(ERC20, ERC20Pausable) {
+        super._beforeTokenTransfer(from, to, amount);
+    }
+
+    /**
+     * @dev Convert uint256 to string
+     */
+    function _toString(uint256 value) internal pure returns (string memory) {
+        if (value == 0) {
+            return "0";
+        }
+        uint256 temp = value;
+        uint256 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        bytes memory buffer = new bytes(digits);
+        while (value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
+            value /= 10;
+        }
+        return string(buffer);
+    }
 
     // TODO: Add tipping, staking, and other gamification features here
 }
