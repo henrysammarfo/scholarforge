@@ -4,7 +4,7 @@
 
 ## 🚀 **Live Demo**
 **Your ScholarForge application is now live and ready for evaluation:**
-**https://scholarforge-82ld52orq-teamtitanlink.vercel.app**
+**[https://scholarforge-82ld52orq-teamtitanlink.vercel.app](https://scholarforge.vercel.app/)**
 
 ## 🏆 **Project Status: READY FOR JUDGING**
 - ✅ **Frontend**: Fully deployed and accessible
