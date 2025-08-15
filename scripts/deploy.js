@@ -6,21 +6,23 @@ async function main() {
   // Get the deployer account
   const [deployer] = await ethers.getSigners();
   console.log("📝 Deploying contracts with account:", deployer.address);
-  console.log("💰 Account balance:", (await deployer.getBalance()).toString());
+  console.log("💰 Account balance:", (await deployer.provider.getBalance(deployer.address)).toString());
 
   // Deploy XPToken first
   console.log("\n🔸 Deploying XPToken...");
   const XPToken = await ethers.getContractFactory("XPToken");
   const xpToken = await XPToken.deploy();
-  await xpToken.deployed();
-  console.log("✅ XPToken deployed to:", xpToken.address);
+  await xpToken.waitForDeployment();
+  const xpTokenAddress = await xpToken.getAddress();
+  console.log("✅ XPToken deployed to:", xpTokenAddress);
 
   // Deploy SkillNFT
   console.log("\n🔸 Deploying SkillNFT...");
   const SkillNFT = await ethers.getContractFactory("SkillNFT");
   const skillNFT = await SkillNFT.deploy();
-  await skillNFT.deployed();
-  console.log("✅ SkillNFT deployed to:", skillNFT.address);
+  await skillNFT.waitForDeployment();
+  const skillNFTAddress = await skillNFT.getAddress();
+  console.log("✅ SkillNFT deployed to:", skillNFTAddress);
 
   // Grant QUIZMASTER_ROLE to the deployer on both contracts
   console.log("\n🔐 Setting up roles...");
@@ -36,7 +38,7 @@ async function main() {
   // Verify deployment
   console.log("\n🔍 Verifying deployment...");
   const xpBalance = await xpToken.balanceOf(deployer.address);
-  console.log("💰 Initial XP balance:", ethers.utils.formatEther(xpBalance));
+  console.log("💰 Initial XP balance:", xpBalance.toString());
 
   const nftCount = await skillNFT.balanceOf(deployer.address);
   console.log("🎨 Initial NFT count:", nftCount.toString());
@@ -48,14 +50,14 @@ async function main() {
     deployer: deployer.address,
     contracts: {
       XPToken: {
-        address: xpToken.address,
+        address: xpTokenAddress,
         name: await xpToken.name(),
         symbol: await xpToken.symbol(),
         decimals: await xpToken.decimals(),
-        totalSupply: ethers.utils.formatEther(await xpToken.totalSupply())
+        totalSupply: (await xpToken.totalSupply()).toString()
       },
       SkillNFT: {
-        address: skillNFT.address,
+        address: skillNFTAddress,
         name: await skillNFT.name(),
         symbol: await skillNFT.symbol()
       }

@@ -10,6 +10,15 @@ module.exports = {
       accounts: process.env.ACCOUNT_PRIVATE_KEY ? [process.env.ACCOUNT_PRIVATE_KEY] : process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       gasPrice: "auto",
       gas: "auto",
+      timeout: 60000,
+    },
+    educhain_alt: {
+      url: "https://rpc.open-campus-codex.gelato.digital",
+      chainId: 656476,
+      accounts: process.env.ACCOUNT_PRIVATE_KEY ? [process.env.ACCOUNT_PRIVATE_KEY] : process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      gasPrice: "auto",
+      gas: "auto",
+      timeout: 60000,
     },
     localhost: {
       url: "http://127.0.0.1:8545",
