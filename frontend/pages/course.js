@@ -195,10 +195,12 @@ export default function Course() {
     setMintingNFT(true);
     try {
       const skillDetails = {
+        courseName: courseMeta.topicName,
         skill: `${courseMeta.topicName} Expert`,
         level: "Proficient",
         topic: courseMeta.topicName,
         language: courseMeta.languageName,
+        score: 100,
         completionPercentage: 100
       };
 

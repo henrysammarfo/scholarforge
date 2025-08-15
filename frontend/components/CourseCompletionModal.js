@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircleIcon, XMarkIcon, TrophyIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { getTranslation } from '../utils/localization';
 import { mintSkillNFT } from '../utils/blockchain';
+import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 
 export default function CourseCompletionModal({ 
   isOpen, 
@@ -16,6 +17,10 @@ export default function CourseCompletionModal({
   const [mintResult, setMintResult] = useState(null);
   const [countdown, setCountdown] = useState(10);
   const [autoProceed, setAutoProceed] = useState(false);
+
+  // Wagmi hooks for wallet connection
+  const { address, isConnected } = useAccount();
+  const { data: walletClient } = useWalletClient();
 
   const { courseName, language, topic, score } = courseData || {};
 
@@ -36,7 +41,7 @@ export default function CourseCompletionModal({
   }, [isOpen, step]);
 
   const handleMarkComplete = async () => {
-    if (!window.ethereum) {
+    if (!isConnected || !walletClient || !address) {
       alert(getTranslation('connectWallet', currentLanguage));
       return;
     }
@@ -45,12 +50,9 @@ export default function CourseCompletionModal({
     setStep('minting');
 
     try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const userAddress = accounts[0];
-
       const result = await mintSkillNFT(
-        window.ethereum, 
-        userAddress, 
+        walletClient, 
+        address, 
         {
           courseName: courseName || 'Unknown Course',
           language: language || currentLanguage,

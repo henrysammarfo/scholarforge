@@ -19,11 +19,14 @@ function buildChains() {
   const defaultChains = [mainnet, polygon, optimism, arbitrum, base, bsc, avalanche, celo, scroll, zkSync]
   const idStr = process.env.NEXT_PUBLIC_EDUCHAIN_ID
   const rpc = process.env.NEXT_PUBLIC_EDUCHAIN_RPC_URL
+  
+  console.log('🔍 Building chains with:', { idStr, rpc });
+  
   if (idStr && rpc) {
     const idNum = Number(idStr)
     const educhain = {
       id: idNum,
-      name: 'EDU Chain Testnet',
+      name: 'EduChain Testnet',
       network: 'educhain-testnet',
       nativeCurrency: { name: 'EDU', symbol: 'EDU', decimals: 18 },
       rpcUrls: {
@@ -35,20 +38,44 @@ function buildChains() {
       },
       testnet: true
     }
+    console.log('✅ EduChain configured:', educhain);
+    console.log('🔍 All chains being returned:', [educhain, ...defaultChains]);
     return [educhain, ...defaultChains]
   }
+  console.log('❌ EduChain not configured, using default chains only');
   return defaultChains
 }
 
+const builtChains = buildChains();
 const { chains, publicClient } = configureChains(
-  buildChains(),
+  builtChains,
   [publicProvider()]
 )
+
+console.log('🔍 Final chains configuration:', chains);
+console.log('🔍 Built chains:', builtChains);
 
 const { connectors } = getDefaultWallets({ appName: 'ScholarForge', projectId: 'scholarforge-demo', chains })
 
 const wagmiConfig = createConfig({ autoConnect: true, connectors, publicClient })
 const queryClient = new QueryClient()
+
+// Custom RainbowKit theme to properly handle EduChain
+const customTheme = {
+  ...lightTheme(),
+  colors: {
+    ...lightTheme().colors,
+    accentColor: '#3b82f6',
+    connectButtonBackground: '#3b82f6',
+    connectButtonBackgroundError: '#ef4444',
+    connectButtonInnerBackground: '#ffffff',
+    connectButtonText: '#ffffff',
+    connectButtonTextError: '#ffffff',
+  },
+  fonts: {
+    body: 'Inter, system-ui, sans-serif',
+  },
+}
 
 function AppInner({ Component, pageProps, navigationValue, setIsWalletConnected }) {
   const { isConnected } = useAccount()
@@ -123,7 +150,7 @@ export default function App({ Component, pageProps }) {
   return (
     <WagmiConfig config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider chains={chains} theme={isDark ? darkTheme() : lightTheme()}>
+        <RainbowKitProvider chains={chains} theme={isDark ? darkTheme() : customTheme}>
           <AppInner Component={Component} pageProps={pageProps} navigationValue={navigationValue} setIsWalletConnected={setIsWalletConnected} />
         </RainbowKitProvider>
       </QueryClientProvider>

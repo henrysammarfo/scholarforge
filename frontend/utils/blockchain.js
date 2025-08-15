@@ -131,10 +131,22 @@ const SKILL_NFT_ABI = [
 // Contract addresses from environment
 export const XP_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS_XP;
 export const SKILL_NFT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS_SKILL;
-export const EDUCHAIN_ID = Number(process.env.NEXT_PUBLIC_EDUCHAIN_ID || '656476');
+export const EDUCHAIN_ID = Number(process.env.NEXT_PUBLIC_EDUCHAIN_CHAIN_ID || '656476');
+
+// Debug logging
+console.log('🔍 Blockchain Utils Loaded:');
+console.log('XP_TOKEN_ADDRESS:', XP_TOKEN_ADDRESS);
+console.log('SKILL_NFT_ADDRESS:', SKILL_NFT_ADDRESS);
+console.log('EDUCHAIN_ID:', EDUCHAIN_ID);
+console.log('Environment check:', {
+  XP: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS_XP,
+  SKILL: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS_SKILL,
+  CHAIN_ID: process.env.NEXT_PUBLIC_EDUCHAIN_CHAIN_ID
+});
 
 // Check if user is on correct network
 export const isCorrectNetwork = (chainId) => {
+  console.log('🔍 Network Check:', { chainId, EDUCHAIN_ID, isCorrect: chainId === EDUCHAIN_ID });
   return chainId === EDUCHAIN_ID;
 };
 
@@ -153,6 +165,28 @@ export const getSkillNFTContract = (signer) => {
   return new ethers.Contract(SKILL_NFT_ADDRESS, SKILL_NFT_ABI, signer);
 };
 
+// Convert Wagmi wallet client to ethers signer
+export const getEthersSigner = (walletClient) => {
+  if (!walletClient) {
+    throw new Error('Wallet client not provided');
+  }
+  
+  // Check if it's already an ethers signer
+  if (walletClient._isSigner) {
+    return walletClient;
+  }
+  
+  // Check if it's a Wagmi wallet client
+  if (walletClient.account && walletClient.chain) {
+    // Create a custom provider from the wallet client
+    const provider = new ethers.providers.Web3Provider(walletClient);
+    return provider.getSigner();
+  }
+  
+  // If it's something else, try to use it directly
+  return walletClient;
+};
+
 // Mint XP tokens for quiz completion
 export const mintXPForQuiz = async (walletClient, userAddress, xpAmount, quizDetails) => {
   try {
@@ -165,11 +199,11 @@ export const mintXPForQuiz = async (walletClient, userAddress, xpAmount, quizDet
       throw new Error('XP Token contract address not configured. Please set NEXT_PUBLIC_CONTRACT_ADDRESS_XP in your environment variables.');
     }
 
-    const signer = walletClient;
+    const signer = getEthersSigner(walletClient);
     const contract = getXPContract(signer);
     
     // Convert XP amount to wei (assuming 18 decimals)
-    const amount = ethers.parseUnits(xpAmount.toString(), 18);
+    const amount = ethers.utils.parseUnits(xpAmount.toString(), 18);
     
     console.log('Minting XP for quiz:', { userAddress, amount: amount.toString(), quizDetails });
     
@@ -209,7 +243,7 @@ export const mintSkillNFT = async (walletClient, userAddress, skillDetails) => {
       throw new Error('Wallet not connected');
     }
 
-    const signer = walletClient;
+    const signer = getEthersSigner(walletClient);
     const contract = getSkillNFTContract(signer);
     
     const { courseName, language, score, topic } = skillDetails;
@@ -247,22 +281,40 @@ export const mintSkillNFT = async (walletClient, userAddress, skillDetails) => {
     
     const receipt = await tx.wait();
     console.log('Transaction confirmed:', receipt);
+    console.log('🔍 Receipt structure:', {
+      hasReceipt: !!receipt,
+      hasLogs: !!(receipt && receipt.logs),
+      logsType: receipt && receipt.logs ? typeof receipt.logs : 'undefined',
+      logsLength: receipt && receipt.logs ? receipt.logs.length : 'N/A',
+      logsIsArray: receipt && receipt.logs ? Array.isArray(receipt.logs) : 'N/A'
+    });
     
-    // Extract token ID from logs
-    let tokenId = null;
-    if (receipt.logs && receipt.logs.length > 0) {
-      for (const log of receipt.logs) {
-        try {
-          const parsedLog = contract.interface.parseLog(log);
-          if (parsedLog && parsedLog.name === 'SkillMinted') {
-            tokenId = parsedLog.args.tokenId.toString();
-            break;
-          }
-        } catch (e) {
-          // Continue searching for the right log
-        }
-      }
-    }
+         // Extract token ID from logs
+     let tokenId = null;
+     try {
+       if (receipt && receipt.logs) {
+         console.log('Transaction receipt logs:', receipt.logs);
+         
+         if (Array.isArray(receipt.logs) && receipt.logs.length > 0) {
+           for (const log of receipt.logs) {
+             try {
+               if (log && log.topics && Array.isArray(log.topics) && log.topics.length > 0) {
+                 const parsedLog = contract.interface.parseLog(log);
+                 if (parsedLog && parsedLog.name === 'SkillMinted') {
+                   tokenId = parsedLog.args.tokenId.toString();
+                   break;
+                 }
+               }
+             } catch (e) {
+               // Continue searching for the right log
+               console.log('Log parsing error:', e);
+             }
+           }
+         }
+       }
+     } catch (e) {
+       console.log('Error processing receipt logs:', e);
+     }
     
     return {
       success: true,
@@ -285,11 +337,16 @@ export const getXPBalance = async (provider, userAddress) => {
   try {
     if (!provider || !userAddress || !XP_TOKEN_ADDRESS) return '0';
     
-    const contract = new ethers.Contract(XP_TOKEN_ADDRESS, XP_TOKEN_ABI, provider);
+    // Always use EduChain RPC for contract calls
+    const educhainRPC = process.env.NEXT_PUBLIC_EDUCHAIN_RPC_URL || 'https://rpc.open-campus-codex.gelato.digital';
+    console.log('🔍 Using RPC for XP balance:', educhainRPC);
+    
+    const ethersProvider = new ethers.providers.JsonRpcProvider(educhainRPC);
+    const contract = new ethers.Contract(XP_TOKEN_ADDRESS, XP_TOKEN_ABI, ethersProvider);
     const balance = await contract.balanceOf(userAddress);
     
     // Convert from wei to tokens (assuming 18 decimals)
-    return ethers.formatUnits(balance, 18);
+    return ethers.utils.formatUnits(balance, 18);
   } catch (error) {
     console.error('Error getting XP balance:', error);
     return '0';
@@ -301,7 +358,11 @@ export const getSkillNFTCount = async (provider, userAddress) => {
   try {
     if (!provider || !userAddress || !SKILL_NFT_ADDRESS) return '0';
     
-    const contract = new ethers.Contract(SKILL_NFT_ADDRESS, SKILL_NFT_ABI, provider);
+    // Always use EduChain RPC for contract calls
+    const educhainRPC = process.env.NEXT_PUBLIC_EDUCHAIN_RPC_URL || 'https://rpc.open-campus-codex.gelato.digital';
+    const ethersProvider = new ethers.providers.JsonRpcProvider(educhainRPC);
+    
+    const contract = new ethers.Contract(SKILL_NFT_ADDRESS, SKILL_NFT_ABI, ethersProvider);
     const balance = await contract.balanceOf(userAddress);
     
     return balance.toString();
@@ -316,10 +377,14 @@ export const getTotalXPEarned = async (provider, userAddress) => {
   try {
     if (!provider || !userAddress || !XP_TOKEN_ADDRESS) return '0';
     
-    const contract = new ethers.Contract(XP_TOKEN_ADDRESS, XP_TOKEN_ABI, provider);
+    // Always use EduChain RPC for contract calls
+    const educhainRPC = process.env.NEXT_PUBLIC_EDUCHAIN_RPC_URL || 'https://rpc.open-campus-codex.gelato.digital';
+    const ethersProvider = new ethers.providers.JsonRpcProvider(educhainRPC);
+    
+    const contract = new ethers.Contract(XP_TOKEN_ADDRESS, XP_TOKEN_ABI, ethersProvider);
     const totalEarned = await contract.getTotalXPEarned(userAddress);
     
-    return ethers.formatUnits(totalEarned, 18);
+    return ethers.utils.formatUnits(totalEarned, 18);
   } catch (error) {
     console.error('Error getting total XP earned:', error);
     return '0';
@@ -331,10 +396,14 @@ export const getXPByActivity = async (provider, userAddress, activity) => {
   try {
     if (!provider || !userAddress || !XP_TOKEN_ADDRESS) return '0';
     
-    const contract = new ethers.Contract(XP_TOKEN_ADDRESS, XP_TOKEN_ABI, provider);
+    // Always use EduChain RPC for contract calls
+    const educhainRPC = process.env.NEXT_PUBLIC_EDUCHAIN_RPC_URL || 'https://rpc.open-campus-codex.gelato.digital';
+    const ethersProvider = new ethers.providers.JsonRpcProvider(educhainRPC);
+    
+    const contract = new ethers.Contract(XP_TOKEN_ADDRESS, XP_TOKEN_ABI, ethersProvider);
     const xpAmount = await contract.getXPByActivity(userAddress, activity);
     
-    return ethers.formatUnits(xpAmount, 18);
+    return ethers.utils.formatUnits(xpAmount, 18);
   } catch (error) {
     console.error('Error getting XP by activity:', error);
     return '0';
@@ -342,12 +411,13 @@ export const getXPByActivity = async (provider, userAddress, activity) => {
 };
 
 // Estimate gas for transactions
-export const estimateXPMintGas = async (signer, userAddress, xpAmount, reason, activity) => {
+export const estimateXPMintGas = async (walletClient, userAddress, xpAmount, reason, activity) => {
   try {
+    const signer = getEthersSigner(walletClient);
     const contract = getXPContract(signer);
-    const amount = ethers.parseUnits(xpAmount.toString(), 18);
+    const amount = ethers.utils.parseUnits(xpAmount.toString(), 18);
     
-    const gasEstimate = await contract.mint.estimateGas(userAddress, amount, reason, activity);
+    const gasEstimate = await contract.mintXP.estimateGas(userAddress, amount, reason, activity);
     return gasEstimate.toString();
   } catch (error) {
     console.error('Error estimating gas:', error);
@@ -355,8 +425,9 @@ export const estimateXPMintGas = async (signer, userAddress, xpAmount, reason, a
   }
 };
 
-export const estimateSkillNFTMintGas = async (signer, userAddress, courseName, language, score, topic, tokenURI) => {
+export const estimateSkillNFTMintGas = async (walletClient, userAddress, courseName, language, score, topic, tokenURI) => {
   try {
+    const signer = getEthersSigner(walletClient);
     const contract = getSkillNFTContract(signer);
     
     const gasEstimate = await contract.mintCourseCompletion.estimateGas(
