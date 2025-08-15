@@ -9,7 +9,7 @@ const XP_TOKEN_ABI = [
       {"internalType": "string", "name": "reason", "type": "string"},
       {"internalType": "string", "name": "activity", "type": "string"}
     ],
-    "name": "mint",
+    "name": "mintXP",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -71,7 +71,7 @@ const SKILL_NFT_ABI = [
     "inputs": [
       {"internalType": "address", "name": "to", "type": "address"},
       {"internalType": "string", "name": "skill", "type": "string"},
-      {"internalType": "string", "name": "tokenURI", "type": "string"}
+      {"internalType": "string", "name": "metadataURI", "type": "string"}
     ],
     "name": "mintSkill",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
@@ -85,7 +85,7 @@ const SKILL_NFT_ABI = [
       {"internalType": "string", "name": "language", "type": "string"},
       {"internalType": "uint256", "name": "score", "type": "uint256"},
       {"internalType": "string", "name": "topic", "type": "string"},
-      {"internalType": "string", "name": "tokenURI", "type": "string"}
+      {"internalType": "string", "name": "metadataURI", "type": "string"}
     ],
     "name": "mintCourseCompletion",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
