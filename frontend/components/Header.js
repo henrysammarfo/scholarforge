@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   SunIcon, 
@@ -13,10 +13,25 @@ import {
 } from '@heroicons/react/24/outline';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useNavigation } from '../pages/_app';
+import { useAccount } from 'wagmi';
 
 export default function Header({ onToggleTheme, isDark }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { isWalletConnected } = useNavigation();
+  const { address, isConnected } = useAccount();
+
+  // Check admin status
+  useEffect(() => {
+    if (address && isConnected) {
+      const adminWallets = process.env.NEXT_PUBLIC_ADMIN_WALLETS 
+        ? process.env.NEXT_PUBLIC_ADMIN_WALLETS.split(',').map(addr => addr.trim())
+        : [];
+      setIsAdmin(adminWallets.includes(address.toLowerCase()));
+    } else {
+      setIsAdmin(false);
+    }
+  }, [address, isConnected]);
 
   const navigation = [
     { name: 'Learn', href: '/learn', icon: BookOpenIcon },
@@ -24,8 +39,11 @@ export default function Header({ onToggleTheme, isDark }) {
     { name: 'Community', href: '/community', icon: UserGroupIcon },
     { name: 'Create Quiz', href: '/create', icon: PlusIcon },
     { name: 'Create Lesson', href: '/create-lesson', icon: SparklesIcon },
+    { name: 'Quiz Host', href: '/quiz-host', icon: UserGroupIcon },
     { name: 'Wallet', href: '/wallet', icon: WalletIcon },
     { name: 'Profile', href: '/profile', icon: UserIcon },
+    // Admin link only shows for admin users
+    ...(isAdmin ? [{ name: 'Admin', href: '/admin', icon: UserIcon, admin: true }] : []),
   ];
 
   return (
@@ -54,7 +72,11 @@ export default function Header({ onToggleTheme, isDark }) {
                   key={item.name}
                   href={item.href}
                   whileHover={{ scale: 1.05, y: -2 }}
-                  className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                  className={`flex items-center space-x-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 ${
+                    item.admin 
+                      ? 'text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300'
+                      : 'text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
+                  }`}
                 >
                   <item.icon className="h-4 w-4" />
                   <span>{item.name}</span>

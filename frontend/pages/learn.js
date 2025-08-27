@@ -3,7 +3,10 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
+import { useAccount } from 'wagmi';
 import { getTranslation, getCurrentLanguage } from '../utils/localization';
+import { languageManager } from '../utils/languageManager';
+import { lessonManager } from '../utils/lessonManager';
 import { 
   TrophyIcon, 
   ClockIcon,
@@ -13,19 +16,13 @@ import {
 
 export default function Learn() {
   const { isDark, setIsDark, navigateToDashboard } = useNavigation();
+  const { address, isConnected } = useAccount();
   const [selectedLanguage, setSelectedLanguage] = useState(null);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [currentLangCode, setCurrentLangCode] = useState('en');
+  const [availableLessons, setAvailableLessons] = useState([]);
 
-  const languages = [
-    { code: 'en', name: 'English', flag: '🇺🇸', description: 'Global language of opportunity' },
-    { code: 'tw', name: 'Twi', flag: '🇬🇭', description: 'Akan language of Ghana' },
-    { code: 'yo', name: 'Yoruba', flag: '🇳🇬', description: 'Language of Nigeria' },
-    { code: 'sw', name: 'Swahili', flag: '🇰🇪', description: 'East African language' },
-    { code: 'fr', name: 'French', flag: '🇫🇷', description: 'West African French' },
-    { code: 'es', name: 'Spanish', flag: '🇲🇽', description: 'Latin American Spanish' },
-    { code: 'hi', name: 'Hindi', flag: '🇮🇳', description: 'Indian subcontinent' }
-  ];
+  const languages = languageManager.getAllLanguages();
 
   // Get localized topics based on selected language
   const getLocalizedTopics = (langCode) => {
@@ -45,20 +42,14 @@ export default function Learn() {
       { 
         id: 'food', 
         name: getTranslation('africanCuisine', langCode), 
-        icon: '🍲', 
+        icon: '🍽️', 
         description: getTranslation('africanCuisineDesc', langCode) 
       },
       { 
-        id: 'sports', 
-        name: getTranslation('sportsFitness', langCode), 
-        icon: '⚽', 
-        description: getTranslation('sportsFitnessDesc', langCode) 
-      },
-      { 
-        id: 'science', 
-        name: getTranslation('scienceTech', langCode), 
-        icon: '🔬', 
-        description: getTranslation('scienceTechDesc', langCode) 
+        id: 'technology', 
+        name: getTranslation('modernTechnology', langCode), 
+        icon: '💻', 
+        description: getTranslation('modernTechnologyDesc', langCode) 
       },
       { 
         id: 'business', 
@@ -67,16 +58,16 @@ export default function Learn() {
         description: getTranslation('businessEntrepreneurshipDesc', langCode) 
       },
       { 
-        id: 'history', 
-        name: getTranslation('africanHistory', langCode), 
-        icon: '📚', 
-        description: getTranslation('africanHistoryDesc', langCode) 
+        id: 'health', 
+        name: getTranslation('healthWellness', langCode), 
+        icon: '🏥', 
+        description: getTranslation('healthWellnessDesc', langCode) 
       },
       { 
-        id: 'arts', 
-        name: getTranslation('artsMusic', langCode), 
-        icon: '🎨', 
-        description: getTranslation('artsMusicDesc', langCode) 
+        id: 'environment', 
+        name: getTranslation('environmentalScience', langCode), 
+        icon: '🌱', 
+        description: getTranslation('environmentalScienceDesc', langCode) 
       }
     ];
     return topics;
@@ -84,28 +75,31 @@ export default function Learn() {
 
   // Load saved language and topic on component mount
   useEffect(() => {
-    try {
-      const savedLanguageCode = localStorage.getItem('sf_selected_language_code');
-      const savedLanguageName = localStorage.getItem('sf_selected_language_name');
-      const savedTopicId = localStorage.getItem('sf_selected_topic_id');
-      const savedTopicName = localStorage.getItem('sf_selected_topic_name');
+    // Only run on client side to prevent hydration mismatch
+    if (typeof window !== 'undefined') {
+      try {
+        const savedLanguageCode = localStorage.getItem('sf_selected_language_code');
+        const savedLanguageName = localStorage.getItem('sf_selected_language_name');
+        const savedTopicId = localStorage.getItem('sf_selected_topic_id');
+        const savedTopicName = localStorage.getItem('sf_selected_topic_name');
 
-      if (savedLanguageCode && savedLanguageName) {
-        const savedLanguage = languages.find(lang => lang.code === savedLanguageCode);
-        if (savedLanguage) {
-          setSelectedLanguage(savedLanguage);
-          setCurrentLangCode(savedLanguageCode);
+        if (savedLanguageCode && savedLanguageName) {
+          const savedLanguage = languages.find(lang => lang.code === savedLanguageCode);
+          if (savedLanguage) {
+            setSelectedLanguage(savedLanguage);
+            setCurrentLangCode(savedLanguageCode);
+          }
         }
-      }
 
-      if (savedTopicId && savedTopicName && selectedLanguage) {
-        const savedTopic = getLocalizedTopics(savedLanguageCode || 'en').find(topic => topic.id === savedTopicId);
-        if (savedTopic) {
-          setSelectedTopic(savedTopic);
+        if (savedTopicId && savedTopicName && selectedLanguage) {
+          const savedTopic = getLocalizedTopics(savedLanguageCode || 'en').find(topic => topic.id === savedTopicId);
+          if (savedTopic) {
+            setSelectedTopic(savedTopic);
+          }
         }
+      } catch (error) {
+        console.error('Error loading saved preferences:', error);
       }
-    } catch (error) {
-      console.error('Error loading saved preferences:', error);
     }
   }, []);
 
@@ -114,10 +108,18 @@ export default function Learn() {
     setSelectedTopic(null);
     setCurrentLangCode(language.code);
     
+    // Update language using language manager
+    languageManager.setCurrentLanguage(language.code);
+    
+    // Load available lessons for this language
+    if (address) {
+      const lessons = lessonManager.getLessonsByLanguage(language.code);
+      setAvailableLessons(lessons);
+    }
+    
     try {
       localStorage.setItem('sf_selected_language_code', language.code);
       localStorage.setItem('sf_selected_language_name', language.name);
-      // Clear previous topic selection when language changes
       localStorage.removeItem('sf_selected_topic_id');
       localStorage.removeItem('sf_selected_topic_name');
     } catch (error) {

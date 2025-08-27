@@ -3,23 +3,23 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
-import { getQuizQuestions } from '../data/courseContent';
+import { getQuizQuestions } from '../data/enhancedCourseContent';
 import { mintXPForQuiz, isCorrectNetwork, switchToEduChain } from '../utils/blockchain';
 import { useAccount, useNetwork } from 'wagmi';
 import { useWalletClient } from 'wagmi';
+import { walletProfileManager } from '../utils/walletProfileManager';
 import { TrophyIcon, ClockIcon, CheckCircleIcon, ArrowRightIcon, CurrencyDollarIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 function getQuizData(topicId, languageCode) {
   const questions = getQuizQuestions(topicId, languageCode);
   const topicTitles = {
     culture: 'Cultural Studies Quiz',
-    crypto: 'Crypto & Web3 Quiz', 
+    crypto: 'Cryptocurrency Quiz', 
     food: 'African Cuisine Quiz',
-    sports: 'Sports & Fitness Quiz',
-    science: 'Science & Technology Quiz',
+    technology: 'Modern Technology Quiz',
     business: 'Business & Entrepreneurship Quiz',
-    history: 'African History Quiz',
-    arts: 'Arts & Music Quiz'
+    health: 'Health & Wellness Quiz',
+    environment: 'Environmental Science Quiz'
   };
   
   return {
@@ -101,23 +101,20 @@ export default function Quiz() {
       }
       
       try {
-        const prev = Number(localStorage.getItem('sf_user_xp') || '0');
-        localStorage.setItem('sf_user_xp', String(prev + earned));
-        const qPrev = Number(localStorage.getItem('sf_quizzes_completed') || '0');
-        localStorage.setItem('sf_quizzes_completed', String(qPrev + 1));
-        
-        // Track language-specific progress
-        const langXP = Number(localStorage.getItem(`sf_language_xp_${meta.languageName}`) || '0');
-        localStorage.setItem(`sf_language_xp_${meta.languageName}`, String(langXP + earned));
-        const langQuizzes = Number(localStorage.getItem(`sf_language_quizzes_${meta.languageName}`) || '0');
-        localStorage.setItem(`sf_language_quizzes_${meta.languageName}`, String(langQuizzes + 1));
-        
-        // Track topic-specific progress
-        const topicXP = Number(localStorage.getItem(`sf_topic_xp_${meta.topicId}`) || '0');
-        localStorage.setItem(`sf_topic_xp_${meta.topicId}`, String(topicXP + earned));
-        const topicQuizzes = Number(localStorage.getItem(`sf_topic_quizzes_${meta.topicId}`) || '0');
-        localStorage.setItem(`sf_topic_quizzes_${meta.topicId}`, String(topicQuizzes + 1));
-      } catch {}
+        // Record quiz completion in wallet profile
+        if (address) {
+          walletProfileManager.recordQuizCompletion(
+            address, 
+            quiz.id || 'quiz_' + Date.now(), 
+            score, 
+            earned, 
+            meta.topicId, 
+            meta.languageCode
+          );
+        }
+      } catch (error) {
+        console.error('Error recording quiz completion:', error);
+      }
     }
   };
 

@@ -463,231 +463,9 @@ export const courseContent = {
           type: "text"
         }
       ]
-    }
-  },
-  sports: {
-    en: {
-      title: "African Sports & Fitness",
-      description: "Learn about traditional and modern sports culture across Africa, from athletics to football.",
-      lessons: [
-        {
-          id: 1,
-          title: "Traditional African Sports",
-          content: `Africa has a rich tradition of sports and physical activities that predate modern organized sports.
+    },
 
-**Traditional Games & Sports:**
-• **Wrestling**: Popular across West and East Africa
-• **Running**: Long-distance running traditions in East Africa
-• **Stick Fighting**: Ceremonial combat sports
-• **Swimming**: Traditional water sports in coastal regions
-• **Archery**: Hunting and ceremonial archery
 
-**Cultural Significance:**
-- Rites of passage for young men and women
-- Community bonding and celebration
-- Physical fitness and warrior training
-- Seasonal festivals and competitions
-
-**Regional Variations:**
-- **Senegalese Wrestling (Lutte)**: National sport with huge following
-- **Ethiopian Running**: Highland training traditions
-- **South African Rugby**: Cultural integration through sport
-- **Nigerian Boxing**: Rich boxing heritage
-
-**Modern Preservation:**
-- Cultural sports festivals
-- Integration into school curricula
-- Tourist attractions and experiences
-- International cultural exchanges`,
-          duration: "8 minutes",
-          type: "text"
-        },
-        {
-          id: 2,
-          title: "Football (Soccer) Culture",
-          content: `Football is the most popular sport across Africa, uniting communities and creating global superstars.
-
-**African Football Excellence:**
-
-**Major Competitions:**
-- Africa Cup of Nations (AFCON)
-- CAF Champions League
-- FIFA World Cup participation
-- Olympic football tournaments
-
-**Legendary Players:**
-- **Pelé** (honorary mention for Brazilian-African heritage)
-- **Samuel Eto'o** (Cameroon)
-- **Didier Drogba** (Ivory Coast)
-- **Mohamed Salah** (Egypt)
-- **Sadio Mané** (Senegal)
-
-**Development Programs:**
-- Youth academies across the continent
-- Grassroots football initiatives
-- Women's football growth
-- Infrastructure development
-
-**Cultural Impact:**
-- Community gathering and celebration
-- Economic opportunities for youth
-- National pride and identity
-- Pan-African unity through sport`,
-          duration: "10 minutes",
-          type: "text"
-        },
-        {
-          id: 3,
-          title: "Athletics & Olympic Sports",
-          content: `African athletes dominate middle and long-distance running, setting world records and inspiring generations.
-
-**Running Powerhouses:**
-
-**Kenya:**
-- Rift Valley training grounds
-- Altitude training advantages
-- Marathon and steeplechase dominance
-- Community running culture
-
-**Ethiopia:**
-- High-altitude training benefits
-- Long-distance running tradition
-- Legendary athletes like Haile Gebrselassie
-- Women's running excellence
-
-**Training Methods:**
-- High-altitude conditioning
-- Natural terrain training
-- Group training systems
-- Minimal equipment approach
-
-**Other Olympic Sports:**
-- **Swimming**: South African excellence
-- **Boxing**: Rich tradition across the continent
-- **Tennis**: Emerging talent development
-- **Cycling**: Growing participation
-
-**Sports Development:**
-- Government investment in facilities
-- International coaching exchanges
-- Scholarship programs
-- Sports science research`,
-          duration: "12 minutes",
-          type: "text"
-        }
-      ]
-    }
-  },
-  science: {
-    en: {
-      title: "Science & Technology in Africa",
-      description: "Explore scientific innovations, technology developments, and STEM education across the African continent.",
-      lessons: [
-        {
-          id: 1,
-          title: "Ancient African Science",
-          content: `Africa has a rich history of scientific and technological innovations dating back thousands of years.
-
-**Ancient Achievements:**
-• **Mathematics**: Number systems and geometric principles
-• **Astronomy**: Star charts and calendar systems
-• **Medicine**: Traditional healing and surgical techniques
-• **Metallurgy**: Iron working and bronze casting
-• **Engineering**: Pyramid construction and irrigation systems
-
-**Notable Civilizations:**
-- **Ancient Egypt**: Medical papyri, architectural marvels
-- **Kingdom of Kush**: Iron technology advancement
-- **Great Zimbabwe**: Sophisticated stone construction
-- **Timbuktu**: Centers of learning and scholarship
-
-**Traditional Knowledge Systems:**
-- Medicinal plant knowledge
-- Agricultural techniques
-- Weather prediction methods
-- Sustainable resource management
-
-**Modern Recognition:**
-- UNESCO World Heritage sites
-- Archaeological discoveries
-- Academic research programs
-- Cultural preservation efforts`,
-          duration: "10 minutes",
-          type: "text"
-        },
-        {
-          id: 2,
-          title: "Modern Technology Innovation",
-          content: `Contemporary Africa is experiencing a technological revolution with innovative solutions to local challenges.
-
-**Mobile Technology:**
-- **M-Pesa**: Revolutionary mobile money system
-- **Mobile Banking**: Financial inclusion through phones
-- **E-Health**: Telemedicine and health apps
-- **Digital Agriculture**: Farming apps and IoT sensors
-
-**Renewable Energy:**
-- **Solar Power**: Off-grid solar solutions
-- **Hydroelectric**: Sustainable energy projects
-- **Wind Energy**: Growing wind farm installations
-- **Biogas**: Waste-to-energy innovations
-
-**Tech Hubs:**
-- **Silicon Savannah** (Kenya): Nairobi tech ecosystem
-- **Yabacon Valley** (Nigeria): Lagos startup scene
-- **Cape Town** (South Africa): Software development
-- **Kigali** (Rwanda): Digital transformation
-
-**Innovation Examples:**
-- Drones for medical delivery
-- AI-powered agricultural solutions
-- Blockchain for supply chain tracking
-- 3D printing for manufacturing`,
-          duration: "8 minutes",
-          type: "text"
-        },
-        {
-          id: 3,
-          title: "STEM Education & Future",
-          content: `Investing in Science, Technology, Engineering, and Mathematics education is crucial for Africa's development.
-
-**Educational Initiatives:**
-
-**Government Programs:**
-- STEM curriculum development
-- Teacher training programs
-- Laboratory equipment provision
-- University partnerships
-
-**Private Sector Involvement:**
-- Corporate-sponsored schools
-- Scholarship programs
-- Internship opportunities
-- Mentorship programs
-
-**International Partnerships:**
-- University exchange programs
-- Research collaborations
-- Technology transfer initiatives
-- Development aid projects
-
-**Challenges & Solutions:**
-- **Infrastructure**: Building labs and internet connectivity
-- **Brain Drain**: Retaining talent through opportunities
-- **Gender Gap**: Encouraging girls in STEM
-- **Rural Access**: Mobile learning solutions
-
-**Future Opportunities:**
-- Space technology development
-- Biotechnology research
-- Climate change solutions
-- Digital transformation leadership`,
-          duration: "12 minutes",
-          type: "text"
-        }
-      ]
-    }
-  },
   business: {
     en: {
       title: "African Business & Entrepreneurship",
@@ -809,244 +587,642 @@ export const courseContent = {
           type: "text"
         }
       ]
-    }
-  },
-  history: {
-    en: {
-      title: "African History & Civilizations",
-      description: "Discover the rich history of African civilizations, from ancient kingdoms to modern nations.",
-      lessons: [
-        {
-          id: 1,
-          title: "Ancient African Civilizations",
-          content: `Africa is home to some of the world's oldest and most sophisticated civilizations.
+    },
+    technology: {
+      en: {
+        title: "Modern Technology & Innovation",
+        description: "Explore cutting-edge technology trends, digital transformation, and innovation in the African context.",
+        lessons: [
+          {
+            id: 1,
+            title: "Artificial Intelligence & Machine Learning",
+            content: `Artificial Intelligence (AI) is revolutionizing industries across Africa, from healthcare to agriculture.
 
-**Major Ancient Civilizations:**
-• **Ancient Egypt (3100-30 BCE)**: Pyramids, hieroglyphics, advanced medicine
-• **Kingdom of Kush (1070 BCE-350 CE)**: Nubian pharaohs, iron technology
-• **Kingdom of Aksum (100-960 CE)**: Trade empire, early Christianity
-• **Great Zimbabwe (1220-1450 CE)**: Stone architecture, gold trade
+**What is AI?**
+• **Machine Learning**: Algorithms that learn from data
+• **Deep Learning**: Neural networks that mimic human brain
+• **Natural Language Processing**: Understanding human language
+• **Computer Vision**: Interpreting visual information
 
-**Achievements:**
-- **Architecture**: Pyramids, Great Zimbabwe, rock churches
-- **Writing Systems**: Hieroglyphics, Meroitic script, Ge'ez
-- **Technology**: Iron working, astronomy, mathematics
-- **Trade Networks**: Saharan, Indian Ocean, Mediterranean
+**African AI Applications:**
+- **Healthcare**: Disease diagnosis and medical imaging
+- **Agriculture**: Crop monitoring and yield prediction
+- **Finance**: Fraud detection and credit scoring
+- **Education**: Personalized learning platforms
 
-**Cultural Contributions:**
-- Religious and philosophical systems
-- Artistic traditions and craftsmanship
-- Agricultural innovations
-- Social and political organization
+**Success Stories:**
+- **MamaOpe**: AI-powered maternal health monitoring
+- **Farmcrowdy**: Agricultural technology platform
+- **Zipline**: Medical drone delivery system
+- **Andela**: Tech talent development
 
-**Archaeological Evidence:**
-- UNESCO World Heritage Sites
-- Museum collections worldwide
-- Ongoing excavations and discoveries
-- Digital preservation projects`,
-          duration: "10 minutes",
-          type: "text"
-        },
-        {
-          id: 2,
-          title: "Medieval African Kingdoms",
-          content: `Medieval Africa saw the rise of powerful kingdoms and empires that controlled vast territories and trade routes.
+**Future Opportunities:**
+- Local AI research and development
+- AI education and training programs
+- Ethical AI guidelines for Africa
+- Collaboration with global tech companies`,
+            duration: "10 minutes",
+            type: "text"
+          },
+          {
+            id: 2,
+            title: "Internet of Things (IoT)",
+            content: `The Internet of Things connects everyday objects to the internet, creating smart, automated systems.
 
-**West African Empires:**
+**IoT Components:**
+• **Sensors**: Collect data from environment
+• **Connectivity**: Internet and wireless networks
+• **Data Processing**: Cloud computing and edge devices
+• **User Interface**: Mobile apps and dashboards
 
-**Ghana Empire (300-1200 CE)**
-- Controlled gold and salt trade
-- Advanced taxation and military systems
-- Islamic influence and cultural exchange
+**African IoT Applications:**
+- **Smart Cities**: Traffic management and waste collection
+- **Smart Homes**: Energy management and security
+- **Smart Agriculture**: Soil monitoring and irrigation
+- **Smart Healthcare**: Patient monitoring and medication tracking
 
-**Mali Empire (1235-1670 CE)**
-- Founded by Sundiata Keita
-- Mansa Musa's legendary pilgrimage
-- Timbuktu as center of learning
+**Implementation Challenges:**
+- Internet infrastructure limitations
+- Power supply reliability
+- Cost of IoT devices
+- Data privacy and security concerns
 
-**Songhai Empire (1464-1591 CE)**
-- Largest empire in African history
-- Advanced administration and military
-- Islamic scholarship and trade
+**Success Stories:**
+- **Lumkani**: Fire detection system in South Africa
+- **M-KOPA**: Solar power with IoT monitoring
+- **Twiga Foods**: Supply chain optimization
+- **Bamboo**: Digital banking platform`,
+            duration: "8 minutes",
+            type: "text"
+          },
+          {
+            id: 3,
+            title: "Digital Transformation",
+            content: `Digital transformation is reshaping African businesses and governments through technology adoption.
 
-**East African Kingdoms:**
-- **Kingdom of Ethiopia**: Christian kingdom, unique architecture
-- **Swahili City-States**: Coastal trading centers
-- **Kingdom of Buganda**: Complex political system
+**Key Technologies:**
+• **Cloud Computing**: Remote data storage and processing
+• **Mobile Technology**: Smartphone-based solutions
+• **Blockchain**: Secure, transparent transactions
+• **5G Networks**: High-speed mobile internet
 
-**Achievements:**
-- Sophisticated governance systems
-- International trade and diplomacy
-- Educational and religious centers
-- Cultural and artistic flowering`,
-          duration: "8 minutes",
-          type: "text"
-        },
-        {
-          id: 3,
-          title: "Colonial Period & Independence",
-          content: `The colonial period profoundly impacted Africa, but independence movements restored African sovereignty.
+**Transformation Areas:**
+- **Government Services**: Digital ID and e-governance
+- **Financial Services**: Mobile money and digital banking
+- **Healthcare**: Telemedicine and health records
+- **Education**: Online learning and digital classrooms
 
-**Colonial Era (1880s-1960s):**
-- **Scramble for Africa**: European partition
-- **Colonial Administration**: Different colonial systems
-- **Economic Exploitation**: Resource extraction
-- **Cultural Impact**: Education, religion, language
+**African Success Stories:**
+- **M-Pesa**: Mobile money revolution in Kenya
+- **eCitizen**: Digital government services in Kenya
+- **Jumia**: E-commerce transformation
+- **Flutterwave**: Digital payment infrastructure
 
-**Resistance Movements:**
-- **Battle of Adwa (1896)**: Ethiopian victory
-- **Mau Mau Uprising**: Kenyan resistance
-- **Algerian War**: North African independence
-- **Cultural Resistance**: Preservation of traditions
+**Implementation Strategies:**
+- Start with high-impact, low-complexity projects
+- Invest in digital skills training
+- Partner with technology providers
+- Ensure inclusive access for all citizens`,
+            duration: "12 minutes",
+            type: "text"
+          }
+        ]
+      }
+    },
+    health: {
+      en: {
+        title: "Health & Wellness",
+        description: "Learn about physical and mental health, nutrition, and wellness practices for a healthy lifestyle.",
+        lessons: [
+          {
+            id: 1,
+            title: "Nutrition Fundamentals",
+            content: `Proper nutrition is the foundation of good health and well-being.
 
-**Independence Era (1950s-1990s):**
-- **Ghana (1957)**: First sub-Saharan independence
-- **Year of Africa (1960)**: Multiple independences
-- **Liberation Movements**: Armed and peaceful struggles
-- **Pan-Africanism**: Continental unity movements
+**Essential Nutrients:**
+• **Proteins**: Building blocks for muscles and tissues
+• **Carbohydrates**: Primary energy source for the body
+• **Fats**: Energy storage and vitamin absorption
+• **Vitamins**: Essential for various body functions
+• **Minerals**: Important for bone health and metabolism
 
-**Post-Independence Challenges:**
-- Nation-building and governance
-- Economic development priorities
-- Cultural renaissance movements
-- Regional integration efforts
+**African Traditional Foods:**
+- **Grains**: Millet, sorghum, teff, and fonio
+- **Tubers**: Yams, cassava, and sweet potatoes
+- **Legumes**: Beans, lentils, and groundnuts
+- **Vegetables**: Leafy greens, tomatoes, and peppers
+- **Fruits**: Mangoes, papayas, and citrus fruits
 
-**Modern Africa:**
-- Democratic transitions
-- Economic growth and development
-- Cultural pride and identity
-- Global partnership and leadership`,
-          duration: "12 minutes",
-          type: "text"
-        }
-      ]
-    }
-  },
-  arts: {
-    en: {
-      title: "African Arts & Creative Expression",
-      description: "Explore the vibrant world of African arts, from traditional crafts to contemporary creative expressions.",
-      lessons: [
-        {
-          id: 1,
-          title: "Traditional African Arts",
-          content: `African traditional arts are deeply connected to spiritual, social, and cultural practices.
+**Healthy Eating Principles:**
+- Eat a variety of colorful foods
+- Include protein with every meal
+- Choose whole grains over refined grains
+- Limit added sugars and processed foods
+- Stay hydrated with water
 
-**Visual Arts:**
-• **Sculpture**: Masks, statues, and ceremonial objects
-• **Painting**: Rock art, body painting, decorative arts
-• **Textiles**: Weaving, dyeing, and embroidery techniques
-• **Pottery**: Functional and ceremonial ceramics
-• **Jewelry**: Beadwork, metalwork, and adornment
+**Traditional African Diets:**
+- **Mediterranean Diet**: North African coastal regions
+- **Plant-Based Diets**: Many traditional African cuisines
+- **Fermented Foods**: Probiotic-rich traditional foods
+- **Herbal Remedies**: Natural medicinal plants`,
+            duration: "10 minutes",
+            type: "text"
+          },
+          {
+            id: 2,
+            title: "Mental Health & Wellbeing",
+            content: `Mental health is as important as physical health for overall well-being.
 
-**Spiritual & Ceremonial Art:**
-- Masks for rituals and festivals
-- Ancestral figures and shrines
-- Religious symbols and totems
-- Healing and protective objects
+**Components of Mental Health:**
+• **Emotional Well-being**: Managing feelings and emotions
+• **Psychological Well-being**: Positive self-perception
+• **Social Well-being**: Healthy relationships and connections
+• **Cognitive Function**: Clear thinking and decision-making
 
-**Regional Styles:**
-- **West Africa**: Bronze casting, wood carving
-- **East Africa**: Makonde sculptures, Maasai beadwork
-- **Central Africa**: Kuba textiles, Chokwe masks
-- **Southern Africa**: Rock paintings, San art
+**Common Mental Health Challenges:**
+- Stress and anxiety from daily life
+- Depression and mood disorders
+- Sleep problems and insomnia
+- Social isolation and loneliness
+- Work-related stress and burnout
 
-**Materials & Techniques:**
-- Natural materials: wood, clay, fiber, stone
-- Traditional tools and methods
-- Natural dyes and pigments
-- Sustainable practices`,
-          duration: "8 minutes",
-          type: "text"
-        },
-        {
-          id: 2,
-          title: "Music & Performance Arts",
-          content: `Music and performance are integral to African culture, serving social, spiritual, and entertainment purposes.
+**African Cultural Perspectives:**
+- **Community Support**: Extended family and social networks
+- **Spiritual Practices**: Religious and traditional beliefs
+- **Traditional Healing**: Herbal and spiritual remedies
+- **Storytelling**: Oral traditions for mental wellness
 
-**Traditional Music:**
+**Wellness Practices:**
+- Regular exercise and physical activity
+- Mindfulness and meditation
+- Adequate sleep and rest
+- Social connections and relationships
+- Professional help when needed`,
+            duration: "8 minutes",
+            type: "text"
+          },
+          {
+            id: 3,
+            title: "Physical Fitness & Exercise",
+            content: `Regular physical activity is essential for maintaining good health and preventing disease.
 
-**Instruments:**
-- **Drums**: Djembe, talking drums, ceremonial drums
-- **String Instruments**: Kora, mbira, musical bow
-- **Wind Instruments**: Flutes, horns, whistles
-- **Percussion**: Shakers, bells, xylophones
+**Types of Exercise:**
+• **Cardiovascular**: Running, walking, cycling, swimming
+• **Strength Training**: Weight lifting, bodyweight exercises
+• **Flexibility**: Stretching, yoga, tai chi
+• **Balance**: Stability exercises, dance, martial arts
 
-**Musical Traditions:**
-- **Griot Tradition**: West African storytelling through music
-- **Call and Response**: Interactive musical conversations
-- **Polyrhythms**: Complex rhythmic patterns
-- **Praise Songs**: Honoring leaders and ancestors
+**African Traditional Physical Activities:**
+- **Dance**: Traditional and modern African dance forms
+- **Martial Arts**: Capoeira, Dambe, and other forms
+- **Sports**: Football (soccer), athletics, and traditional games
+- **Manual Labor**: Farming, construction, and crafts
 
-**Dance Traditions:**
-- Ceremonial and ritual dances
-- Seasonal and harvest celebrations
-- Rites of passage performances
-- Storytelling through movement
+**Benefits of Regular Exercise:**
+- Improved cardiovascular health
+- Stronger muscles and bones
+- Better mental health and mood
+- Weight management and metabolism
+- Reduced risk of chronic diseases
 
-**Modern Evolution:**
-- **Highlife**: Ghana and Nigeria popular music
-- **Soukous**: Central African dance music
-- **Mbaqanga**: South African jazz fusion
-- **Afrobeats**: Contemporary global phenomenon
+**Exercise Guidelines:**
+- Aim for 150 minutes of moderate activity weekly
+- Include strength training 2-3 times per week
+- Start slowly and gradually increase intensity
+- Choose activities you enjoy and can maintain
+- Listen to your body and rest when needed`,
+            duration: "12 minutes",
+            type: "text"
+          }
+        ]
+      }
+    },
+    environment: {
+      en: {
+        title: "Environmental Science & Sustainability",
+        description: "Explore environmental challenges, conservation efforts, and sustainable practices for a better future.",
+        lessons: [
+          {
+            id: 1,
+            title: "Climate Change & Global Warming",
+            content: `Climate change is one of the most pressing environmental challenges facing our planet.
 
-**Global Influence:**
-- Jazz and blues foundations
-- Rock and pop music elements
-- World music collaborations
-- Cultural exchange programs`,
-          duration: "10 minutes",
-          type: "text"
-        },
-        {
-          id: 3,
-          title: "Contemporary African Arts",
-          content: `Modern African artists are creating innovative works that bridge traditional and contemporary expressions.
+**What is Climate Change?**
+• **Global Warming**: Increase in Earth's average temperature
+• **Greenhouse Effect**: Natural process that keeps Earth warm
+• **Human Impact**: Burning fossil fuels and deforestation
+• **Consequences**: Rising sea levels, extreme weather, ecosystem changes
 
-**Visual Arts Movement:**
+**African Climate Challenges:**
+- **Drought**: Water scarcity and crop failures
+- **Flooding**: Heavy rainfall and infrastructure damage
+- **Desertification**: Land degradation in arid regions
+- **Biodiversity Loss**: Habitat destruction and species extinction
 
-**Contemporary Painters:**
-- **El Anatsui** (Ghana): Bottle cap installations
-- **Kehinde Wiley** (Nigerian-American): Portrait paintings
-- **William Kentridge** (South Africa): Animation and drawing
-- **Marlene Dumas** (South Africa): Expressive paintings
+**African Climate Solutions:**
+- **Renewable Energy**: Solar, wind, and hydroelectric power
+- **Sustainable Agriculture**: Conservation farming and agroforestry
+- **Forest Conservation**: Protecting and restoring forests
+- **Climate Education**: Raising awareness and building capacity
 
-**Sculpture & Installation:**
-- Large-scale public artworks
-- Environmental and recycled materials
-- Interactive and digital installations
-- Community-based art projects
+**International Cooperation:**
+- **Paris Agreement**: Global climate action framework
+- **African Union**: Continental climate initiatives
+- **Green Climate Fund**: Financial support for adaptation
+- **Technology Transfer**: Sharing clean energy solutions`,
+            duration: "10 minutes",
+            type: "text"
+          },
+          {
+            id: 2,
+            title: "Conservation & Biodiversity",
+            content: `Biodiversity is essential for ecosystem health and human well-being.
 
-**Photography & Digital Arts:**
-- Documentary photography movements
-- Digital art and multimedia
-- Fashion and lifestyle photography
-- Social media art platforms
+**What is Biodiversity?**
+• **Species Diversity**: Variety of different species
+• **Genetic Diversity**: Variation within species
+• **Ecosystem Diversity**: Different types of habitats
+• **Functional Diversity**: Variety of ecological roles
 
-**Literature & Film:**
-- **Nobel Prize Winners**: Wole Soyinka, Nadine Gordimer, J.M. Coetzee
-- **Film Industry Growth**: Nollywood, South African cinema
-- **Literary Festivals**: Continental and international recognition
-- **Digital Publishing**: Online platforms and e-books
+**African Biodiversity Hotspots:**
+- **Congo Basin**: World's second-largest rainforest
+- **Serengeti**: Iconic savanna ecosystem
+- **Madagascar**: Unique island biodiversity
+- **Cape Floristic Region**: Rich plant diversity
 
-**Fashion & Design:**
-- **African Fashion Week**: Global fashion recognition
-- **Contemporary Designers**: Modern interpretations of traditional styles
-- **Sustainable Fashion**: Ethical and eco-friendly practices
-- **Cultural Fusion**: Afrofuturism and global influences
+**Conservation Challenges:**
+- Habitat destruction and fragmentation
+- Poaching and illegal wildlife trade
+- Climate change impacts
+- Human-wildlife conflict
+- Invasive species introduction
 
-**Art Market Development:**
-- African art fairs and galleries
-- International museum acquisitions
-- Art investment and collecting
-- Cultural tourism and creative industries`,
-          duration: "12 minutes",
-          type: "text"
-        }
-      ]
-    }
-  }
-};
+**Conservation Success Stories:**
+- **Gorilla Conservation**: Mountain gorilla population recovery
+- **Community Conservation**: Local involvement in protection
+- **Protected Areas**: National parks and reserves
+- **Ecotourism**: Sustainable tourism for conservation`,
+            duration: "8 minutes",
+            type: "text"
+          },
+          {
+            id: 3,
+            title: "Sustainable Living Practices",
+            content: `Sustainable living helps protect the environment and create a better future for all.
+
+**Sustainable Living Principles:**
+• **Reduce**: Minimize consumption and waste
+• **Reuse**: Find new purposes for items
+• **Recycle**: Convert waste into new materials
+• **Rethink**: Question consumption patterns
+
+**Energy Conservation:**
+- Use energy-efficient appliances and lighting
+- Switch to renewable energy sources
+- Improve home insulation and efficiency
+- Reduce transportation emissions
+
+**Water Conservation:**
+- Fix leaks and use water-efficient fixtures
+- Collect rainwater for gardening
+- Use drought-resistant plants
+- Reduce water waste in daily activities
+
+**Waste Reduction:**
+- Choose products with minimal packaging
+- Compost organic waste
+- Buy local and seasonal foods
+- Support circular economy initiatives
+
+**African Traditional Sustainability:**
+- **Traditional Farming**: Sustainable agricultural practices
+- **Natural Building**: Local materials and techniques
+- **Community Resource Management**: Shared responsibility
+- **Indigenous Knowledge**: Traditional environmental wisdom`,
+            duration: "12 minutes",
+            type: "text"
+          }
+        ]
+      }
+    },
+    technology: {
+      en: {
+        title: "Modern Technology & Innovation",
+        description: "Explore cutting-edge technology trends, digital transformation, and innovation in the African context.",
+        lessons: [
+          {
+            id: 1,
+            title: "Artificial Intelligence & Machine Learning",
+            content: `Artificial Intelligence (AI) is revolutionizing industries across Africa, from healthcare to agriculture.
+
+**What is AI?**
+• **Machine Learning**: Algorithms that learn from data
+• **Deep Learning**: Neural networks that mimic human brain
+• **Natural Language Processing**: Understanding human language
+• **Computer Vision**: Interpreting visual information
+
+**African AI Applications:**
+- **Healthcare**: Disease diagnosis and medical imaging
+- **Agriculture**: Crop monitoring and yield prediction
+- **Finance**: Fraud detection and credit scoring
+- **Education**: Personalized learning platforms
+
+**Success Stories:**
+- **MamaOpe**: AI-powered maternal health monitoring
+- **Farmcrowdy**: Agricultural technology platform
+- **Zipline**: Medical drone delivery system
+- **Andela**: Tech talent development
+
+**Future Opportunities:**
+- Local AI research and development
+- AI education and training programs
+- Ethical AI guidelines for Africa
+- Collaboration with global tech companies`,
+            duration: "10 minutes",
+            type: "text"
+          },
+          {
+            id: 2,
+            title: "Internet of Things (IoT)",
+            content: `The Internet of Things connects everyday objects to the internet, creating smart, automated systems.
+
+**IoT Components:**
+• **Sensors**: Collect data from environment
+• **Connectivity**: Internet and wireless networks
+• **Data Processing**: Cloud computing and edge devices
+• **User Interface**: Mobile apps and dashboards
+
+**African IoT Applications:**
+- **Smart Cities**: Traffic management and waste collection
+- **Smart Homes**: Energy management and security
+- **Smart Agriculture**: Soil monitoring and irrigation
+- **Smart Healthcare**: Patient monitoring and medication tracking
+
+**Implementation Challenges:**
+- Internet infrastructure limitations
+- Power supply reliability
+- Cost of IoT devices
+- Data privacy and security concerns
+
+**Success Stories:**
+- **Lumkani**: Fire detection system in South Africa
+- **M-KOPA**: Solar power with IoT monitoring
+- **Twiga Foods**: Supply chain optimization
+- **Bamboo**: Digital banking platform`,
+            duration: "8 minutes",
+            type: "text"
+          },
+          {
+            id: 3,
+            title: "Digital Transformation",
+            content: `Digital transformation is reshaping African businesses and governments through technology adoption.
+
+**Key Technologies:**
+• **Cloud Computing**: Remote data storage and processing
+• **Mobile Technology**: Smartphone-based solutions
+• **Blockchain**: Secure, transparent transactions
+• **5G Networks**: High-speed mobile internet
+
+**Transformation Areas:**
+- **Government Services**: Digital ID and e-governance
+- **Financial Services**: Mobile money and digital banking
+- **Healthcare**: Telemedicine and health records
+- **Education**: Online learning and digital classrooms
+
+**African Success Stories:**
+- **M-Pesa**: Mobile money revolution in Kenya
+- **eCitizen**: Digital government services in Kenya
+- **Jumia**: E-commerce transformation
+- **Flutterwave**: Digital payment infrastructure
+
+**Implementation Strategies:**
+- Start with high-impact, low-complexity projects
+- Invest in digital skills training
+- Partner with technology providers
+- Ensure inclusive access for all citizens`,
+            duration: "12 minutes",
+            type: "text"
+          }
+        ]
+      }
+    },
+    health: {
+      en: {
+        title: "Health & Wellness",
+        description: "Learn about physical and mental health, nutrition, and wellness practices for a healthy lifestyle.",
+        lessons: [
+          {
+            id: 1,
+            title: "Nutrition Fundamentals",
+            content: `Proper nutrition is the foundation of good health and well-being.
+
+**Essential Nutrients:**
+• **Proteins**: Building blocks for muscles and tissues
+• **Carbohydrates**: Primary energy source for the body
+• **Fats**: Energy storage and vitamin absorption
+• **Vitamins**: Essential for various body functions
+• **Minerals**: Important for bone health and metabolism
+
+**African Traditional Foods:**
+- **Grains**: Millet, sorghum, teff, and fonio
+- **Tubers**: Yams, cassava, and sweet potatoes
+- **Legumes**: Beans, lentils, and groundnuts
+- **Vegetables**: Leafy greens, tomatoes, and peppers
+- **Fruits**: Mangoes, papayas, and citrus fruits
+
+**Healthy Eating Principles:**
+- Eat a variety of colorful foods
+- Include protein with every meal
+- Choose whole grains over refined grains
+- Limit added sugars and processed foods
+- Stay hydrated with water
+
+**Traditional African Diets:**
+- **Mediterranean Diet**: North African coastal regions
+- **Plant-Based Diets**: Many traditional African cuisines
+- **Fermented Foods**: Probiotic-rich traditional foods
+- **Herbal Remedies**: Natural medicinal plants`,
+            duration: "10 minutes",
+            type: "text"
+          },
+          {
+            id: 2,
+            title: "Mental Health & Wellbeing",
+            content: `Mental health is as important as physical health for overall well-being.
+
+**Components of Mental Health:**
+• **Emotional Well-being**: Managing feelings and emotions
+• **Psychological Well-being**: Positive self-perception
+• **Social Well-being**: Healthy relationships and connections
+• **Cognitive Function**: Clear thinking and decision-making
+
+**Common Mental Health Challenges:**
+- Stress and anxiety from daily life
+- Depression and mood disorders
+- Sleep problems and insomnia
+- Social isolation and loneliness
+- Work-related stress and burnout
+
+**African Cultural Perspectives:**
+- **Community Support**: Extended family and social networks
+- **Spiritual Practices**: Religious and traditional beliefs
+- **Traditional Healing**: Herbal and spiritual remedies
+- **Storytelling**: Oral traditions for mental wellness
+
+**Wellness Practices:**
+- Regular exercise and physical activity
+- Mindfulness and meditation
+- Adequate sleep and rest
+- Social connections and relationships
+- Professional help when needed`,
+            duration: "8 minutes",
+            type: "text"
+          },
+          {
+            id: 3,
+            title: "Physical Fitness & Exercise",
+            content: `Regular physical activity is essential for maintaining good health and preventing disease.
+
+**Types of Exercise:**
+• **Cardiovascular**: Running, walking, cycling, swimming
+• **Strength Training**: Weight lifting, bodyweight exercises
+• **Flexibility**: Stretching, yoga, tai chi
+• **Balance**: Stability exercises, dance, martial arts
+
+**African Traditional Physical Activities:**
+- **Dance**: Traditional and modern African dance forms
+- **Martial Arts**: Capoeira, Dambe, and other forms
+- **Sports**: Football (soccer), athletics, and traditional games
+- **Manual Labor**: Farming, construction, and crafts
+
+**Benefits of Regular Exercise:**
+- Improved cardiovascular health
+- Stronger muscles and bones
+- Better mental health and mood
+- Weight management and metabolism
+- Reduced risk of chronic diseases
+
+**Exercise Guidelines:**
+- Aim for 150 minutes of moderate activity weekly
+- Include strength training 2-3 times per week
+- Start slowly and gradually increase intensity
+- Choose activities you enjoy and can maintain
+- Listen to your body and rest when needed`,
+            duration: "12 minutes",
+            type: "text"
+          }
+        ]
+      }
+    },
+    environment: {
+      en: {
+        title: "Environmental Science & Sustainability",
+        description: "Explore environmental challenges, conservation efforts, and sustainable practices for a better future.",
+        lessons: [
+          {
+            id: 1,
+            title: "Climate Change & Global Warming",
+            content: `Climate change is one of the most pressing environmental challenges facing our planet.
+
+**What is Climate Change?**
+• **Global Warming**: Increase in Earth's average temperature
+• **Greenhouse Effect**: Natural process that keeps Earth warm
+• **Human Impact**: Burning fossil fuels and deforestation
+• **Consequences**: Rising sea levels, extreme weather, ecosystem changes
+
+**African Climate Challenges:**
+- **Drought**: Water scarcity and crop failures
+- **Flooding**: Heavy rainfall and infrastructure damage
+- **Desertification**: Land degradation in arid regions
+- **Biodiversity Loss**: Habitat destruction and species extinction
+
+**African Climate Solutions:**
+- **Renewable Energy**: Solar, wind, and hydroelectric power
+- **Sustainable Agriculture**: Conservation farming and agroforestry
+- **Forest Conservation**: Protecting and restoring forests
+- **Climate Education**: Raising awareness and building capacity
+
+**International Cooperation:**
+- **Paris Agreement**: Global climate action framework
+- **African Union**: Continental climate initiatives
+- **Green Climate Fund**: Financial support for adaptation
+- **Technology Transfer**: Sharing clean energy solutions`,
+            duration: "10 minutes",
+            type: "text"
+          },
+          {
+            id: 2,
+            title: "Conservation & Biodiversity",
+            content: `Biodiversity is essential for ecosystem health and human well-being.
+
+**What is Biodiversity?**
+• **Species Diversity**: Variety of different species
+• **Genetic Diversity**: Variation within species
+• **Ecosystem Diversity**: Different types of habitats
+• **Functional Diversity**: Variety of ecological roles
+
+**African Biodiversity Hotspots:**
+- **Congo Basin**: World's second-largest rainforest
+- **Serengeti**: Iconic savanna ecosystem
+- **Madagascar**: Unique island biodiversity
+- **Cape Floristic Region**: Rich plant diversity
+
+**Conservation Challenges:**
+- Habitat destruction and fragmentation
+- Poaching and illegal wildlife trade
+- Climate change impacts
+- Human-wildlife conflict
+- Invasive species introduction
+
+**Conservation Success Stories:**
+- **Gorilla Conservation**: Mountain gorilla population recovery
+- **Community Conservation**: Local involvement in protection
+- **Protected Areas**: National parks and reserves
+- **Ecotourism**: Sustainable tourism for conservation`,
+            duration: "8 minutes",
+            type: "text"
+          },
+          {
+            id: 3,
+            title: "Sustainable Living Practices",
+            content: `Sustainable living helps protect the environment and create a better future for all.
+
+**Sustainable Living Principles:**
+• **Reduce**: Minimize consumption and waste
+• **Reuse**: Find new purposes for items
+• **Recycle**: Convert waste into new materials
+• **Rethink**: Question consumption patterns
+
+**Energy Conservation:**
+- Use energy-efficient appliances and lighting
+- Switch to renewable energy sources
+- Improve home insulation and efficiency
+- Reduce transportation emissions
+
+**Water Conservation:**
+- Fix leaks and use water-efficient fixtures
+- Collect rainwater for gardening
+- Use drought-resistant plants
+- Reduce water waste in daily activities
+
+**Waste Reduction:**
+- Choose products with minimal packaging
+- Compost organic waste
+- Buy local and seasonal foods
+- Support circular economy initiatives
+
+**African Traditional Sustainability:**
+- **Traditional Farming**: Sustainable agricultural practices
+- **Natural Building**: Local materials and techniques
+- **Community Resource Management**: Shared responsibility
+- **Indigenous Knowledge**: Traditional environmental wisdom`,
+            duration: "12 minutes",
+            type: "text"
+          }
+        ]
+      }
+    },
+  };
 
 export const getQuizQuestions = (topicId, languageCode = 'en') => {
   const quizData = {
@@ -1132,6 +1308,34 @@ export const getQuizQuestions = (topicId, languageCode = 'en') => {
           correct: 1,
           explanation: "Stablecoins are cryptocurrencies pegged to stable assets like USD to reduce volatility."
         }
+      ],
+      sw: [
+        {
+          question: "Je, ni kipengele gani muhimu cha teknolojia ya blockchain?",
+          options: ["Udhibiti wa katikati", "Kutoweza kubadilika", "Ada za juu", "Muamala wa polepole"],
+          correct: 1,
+          explanation: "Kutoweza kubadilika kwa blockchain kunamaanisha rekodi haziwezi kubadilika kwa urahisi."
+        },
+        {
+          question: "DeFi inawakilisha nini?",
+          options: ["Fedha ya Kidijitali", "Fedha ya Kujitegemea", "Fedha ya Kusambazwa", "Fedha ya Moja kwa Moja"],
+          correct: 1,
+          explanation: "DeFi inawakilisha Fedha ya Kujitegemea, ikirejesha huduma za kifedha za jadi kwenye blockchain."
+        }
+      ],
+      fr: [
+        {
+          question: "Quelle est la caractéristique clé de la technologie blockchain?",
+          options: ["Contrôle centralisé", "Immutabilité", "Frais élevés", "Transactions lentes"],
+          correct: 1,
+          explanation: "L'immutabilité de la blockchain signifie que les enregistrements ne peuvent pas être facilement modifiés."
+        },
+        {
+          question: "Que signifie DeFi?",
+          options: ["Finance Digitale", "Finance Décentralisée", "Finance Distribuée", "Finance Directe"],
+          correct: 1,
+          explanation: "DeFi signifie Finance Décentralisée, recréant les services financiers traditionnels sur la blockchain."
+        }
       ]
     },
     food: {
@@ -1143,63 +1347,73 @@ export const getQuizQuestions = (topicId, languageCode = 'en') => {
           explanation: "Jollof Rice is claimed as a national dish by both Nigeria and Ghana, creating a friendly rivalry."
         },
         {
-          question: "What is Injera?",
-          options: ["Spicy stew", "Spongy flatbread", "Fried plantains", "Rice dish"],
+          question: "What is Fufu made from?",
+          options: ["Rice and beans", "Cassava and plantain", "Corn and wheat", "Potatoes and carrots"],
           correct: 1,
-          explanation: "Injera is a spongy sourdough flatbread from Ethiopia, eaten with various stews."
-        },
+          explanation: "Fufu is traditionally made from cassava and plantain, pounded into a smooth, stretchy dough."
+        }
+      ],
+      sw: [
         {
-          question: "What is the main ingredient in Egusi soup?",
-          options: ["Cassava", "Ground melon seeds", "Rice", "Plantains"],
+          question: "Chakula gani kina uhasama wa kirafiki kati ya Nigeria na Ghana?",
+          options: ["Fufu", "Mchele wa Jollof", "Kelewele", "Egusi"],
           correct: 1,
-          explanation: "Egusi soup is made primarily from ground melon seeds and is rich in protein."
+          explanation: "Mchele wa Jollof unadaiwa kuwa chakula cha taifa na Nigeria na Ghana."
         }
       ]
     },
-    sports: {
+
+    technology: {
       en: [
         {
-          question: "What is Senegal's national sport?",
-          options: ["Football", "Wrestling (Lutte)", "Running", "Boxing"],
-          correct: 1,
-          explanation: "Senegalese Wrestling (Lutte) is the national sport with a huge cultural following."
+          question: "What does AI stand for?",
+          options: ["Artificial Intelligence", "Advanced Internet", "Automated Information", "Applied Innovation"],
+          correct: 0,
+          explanation: "AI stands for Artificial Intelligence - technology that simulates human intelligence."
         },
         {
-          question: "Which region is famous for producing world-class distance runners?",
-          options: ["West Africa", "Rift Valley (East Africa)", "North Africa", "Central Africa"],
+          question: "What is the Internet of Things (IoT)?",
+          options: ["Social media platforms", "Connecting objects to the internet", "Online shopping websites", "Video streaming services"],
           correct: 1,
-          explanation: "The Rift Valley region in East Africa, particularly Kenya and Ethiopia, is renowned for distance running."
-        },
-        {
-          question: "Who is considered one of Africa's greatest football players from Ivory Coast?",
-          options: ["Samuel Eto'o", "Mohamed Salah", "Didier Drogba", "Sadio Mané"],
-          correct: 2,
-          explanation: "Didier Drogba from Ivory Coast is considered one of Africa's greatest footballers."
+          explanation: "IoT connects everyday objects to the internet for automation and data collection."
         }
       ]
     },
-    science: {
+
+    health: {
       en: [
         {
-          question: "Which ancient African civilization is known for pyramid construction?",
-          options: ["Kingdom of Kush", "Ancient Egypt", "Great Zimbabwe", "Kingdom of Aksum"],
+          question: "Which nutrient is the primary energy source for the body?",
+          options: ["Proteins", "Carbohydrates", "Fats", "Vitamins"],
           correct: 1,
-          explanation: "Ancient Egypt is famous for its pyramid construction and architectural marvels."
+          explanation: "Carbohydrates are the body's primary energy source, especially for the brain and muscles."
         },
         {
-          question: "What does M-Pesa represent in African technology?",
-          options: ["Social media platform", "Mobile money system", "E-commerce site", "Gaming app"],
+          question: "What is NOT a component of mental health?",
+          options: ["Emotional well-being", "Physical strength", "Social well-being", "Cognitive function"],
           correct: 1,
-          explanation: "M-Pesa is a revolutionary mobile money system that transformed financial inclusion in Africa."
-        },
-        {
-          question: "Which city is known as 'Silicon Savannah'?",
-          options: ["Lagos", "Cape Town", "Nairobi", "Kigali"],
-          correct: 2,
-          explanation: "Nairobi, Kenya is known as 'Silicon Savannah' due to its thriving tech ecosystem."
+          explanation: "Physical strength is related to physical health, not mental health."
         }
       ]
     },
+
+    environment: {
+      en: [
+        {
+          question: "What are greenhouse gases?",
+          options: ["Gases that cool the atmosphere", "Gases that trap heat in the atmosphere", "Gases that create rain", "Gases that clean the air"],
+          correct: 1,
+          explanation: "Greenhouse gases trap heat in the atmosphere, contributing to global warming."
+        },
+        {
+          question: "Which is NOT a sustainable living practice?",
+          options: ["Using renewable energy", "Recycling and composting", "Driving everywhere alone", "Buying local products"],
+          correct: 2,
+          explanation: "Driving everywhere alone is not sustainable; walking, biking, or carpooling is better."
+        }
+      ]
+    },
+
     business: {
       en: [
         {
@@ -1222,50 +1436,7 @@ export const getQuizQuestions = (topicId, languageCode = 'en') => {
         }
       ]
     },
-    history: {
-      en: [
-        {
-          question: "Who was the famous ruler of Mali Empire known for his wealth?",
-          options: ["Sundiata Keita", "Mansa Musa", "Askia Mohammed", "Hannibal"],
-          correct: 1,
-          explanation: "Mansa Musa of Mali Empire was known for his legendary wealth and pilgrimage to Mecca."
-        },
-        {
-          question: "Which was the first sub-Saharan African country to gain independence?",
-          options: ["Nigeria", "Kenya", "Ghana", "Senegal"],
-          correct: 2,
-          explanation: "Ghana was the first sub-Saharan African country to gain independence in 1957."
-        },
-        {
-          question: "What was significant about the Battle of Adwa in 1896?",
-          options: ["Colonial victory", "Ethiopian victory over Italy", "Trade agreement", "Religious conversion"],
-          correct: 1,
-          explanation: "The Battle of Adwa was a significant Ethiopian victory over Italian colonial forces."
-        }
-      ]
-    },
-    arts: {
-      en: [
-        {
-          question: "What is a Griot in West African culture?",
-          options: ["Warrior", "Storyteller through music", "Trader", "Farmer"],
-          correct: 1,
-          explanation: "A Griot is a traditional West African storyteller who preserves history through music and oral tradition."
-        },
-        {
-          question: "Which musical instrument is known as the African 'talking drum'?",
-          options: ["Djembe", "Kora", "Talking drum", "Mbira"],
-          correct: 2,
-          explanation: "The talking drum can mimic human speech patterns and is used for communication across distances."
-        },
-        {
-          question: "What is Nollywood?",
-          options: ["South African music", "Nigerian film industry", "Ghanaian fashion", "Kenyan art movement"],
-          correct: 1,
-          explanation: "Nollywood refers to Nigeria's film industry, one of the largest in the world."
-        }
-      ]
-    }
+
   };
 
   return quizData[topicId]?.[languageCode] || quizData[topicId]?.en || [];

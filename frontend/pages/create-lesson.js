@@ -3,7 +3,10 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
+import { useAccount } from 'wagmi';
 import { getTranslation, getCurrentLanguage } from '../utils/localization';
+import { enhancedLessonManager } from '../utils/enhancedLessonManager';
+import { languageManager } from '../utils/languageManager';
 import { 
   CpuChipIcon, 
   SparklesIcon, 
@@ -16,11 +19,14 @@ import {
 
 export default function CreateLesson() {
   const { isDark, setIsDark } = useNavigation();
+  const { address, isConnected } = useAccount();
   const [prompt, setPrompt] = useState('');
   const [language, setLanguage] = useState('en');
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null);
   const [currentLangCode, setCurrentLangCode] = useState('en');
+  const [topic, setTopic] = useState('');
+  const [lessonType, setLessonType] = useState('community'); // 'personal' or 'community'
 
   // Load saved language preference on component mount
   useEffect(() => {
@@ -42,7 +48,10 @@ export default function CreateLesson() {
     { code: 'sw', name: 'Swahili', flag: '🇰🇪' },
     { code: 'fr', name: 'French', flag: '🇫🇷' },
     { code: 'es', name: 'Spanish', flag: '🇲🇽' },
-    { code: 'hi', name: 'Hindi', flag: '🇮🇳' }
+    { code: 'hi', name: 'Hindi', flag: '🇮🇳' },
+    { code: 'ar', name: 'Arabic', flag: '🇸🇦' },
+    { code: 'zh', name: 'Chinese', flag: '🇨🇳' },
+    { code: 'pt', name: 'Portuguese', flag: '🇵🇹' }
   ];
 
   const generate = async () => {
@@ -60,7 +69,8 @@ export default function CreateLesson() {
         },
         body: JSON.stringify({
           prompt: prompt.trim(),
-          language: language
+          language: language,
+          topic: topic
         })
       });
 
@@ -98,14 +108,59 @@ export default function CreateLesson() {
   };
 
   const publishLesson = () => {
-    if (!result) return;
+    if (!result || !address || !isConnected) {
+      alert('Please connect your wallet to publish lessons');
+      return;
+    }
     
-    // Here you would typically save the lesson to your database
-    // For now, we'll just show a success message
-    alert(getTranslation('lessonPublished', currentLangCode));
-    
-    // Navigate to the lesson page or dashboard
-    window.location.href = `/course?lang=${language}&topic=custom&lesson=${encodeURIComponent(result.lessonTitle)}`;
+    try {
+      // Create lesson data
+      const lessonData = {
+        title: result.lessonTitle,
+        content: result.lessonContent,
+        language: language,
+        topic: topic || 'custom',
+        creatorWallet: address,
+        description: `AI-generated lesson about ${prompt}`,
+        difficulty: 'Beginner',
+        estimatedDuration: '10 minutes',
+        tags: [topic, language, 'ai-generated'],
+        quiz: result.quiz,
+        lessonType: lessonType, // 'personal' or 'community'
+        isPublic: lessonType === 'community'
+      };
+      
+      // Save lesson using enhanced lesson manager
+      const savedLesson = enhancedLessonManager.createLesson(lessonData);
+      
+      if (savedLesson) {
+        // Create quiz from lesson
+        const quiz = enhancedLessonManager.createQuizFromLesson(savedLesson.id, {
+          title: `Quiz: ${result.lessonTitle}`,
+          description: `Test your knowledge of ${result.lessonTitle}`,
+          questions: result.quiz.map(q => ({
+            question: q.q,
+            options: q.a,
+            correct: q.correct,
+            explanation: q.explanation
+          }))
+        });
+        
+        alert(getTranslation('lessonPublished', currentLangCode));
+        
+        // Navigate to the course page with the correct topic and language
+        localStorage.setItem('sf_selected_topic_id', topic || 'custom');
+        localStorage.setItem('sf_selected_topic_name', topic || 'Custom Topic');
+        localStorage.setItem('sf_selected_language_code', language);
+        localStorage.setItem('sf_selected_language_name', languages.find(l => l.code === language)?.name || 'English');
+        window.location.href = '/course';
+      } else {
+        alert('Failed to save lesson. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error publishing lesson:', error);
+      alert('Failed to publish lesson. Please try again.');
+    }
   };
 
   return (
@@ -129,7 +184,7 @@ export default function CreateLesson() {
             {getTranslation('aiLessonCreator', currentLangCode)}
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            {getTranslation('aiLessonCreatorDesc', currentLangCode)}
+            AI-powered lesson creator that generates educational content in multiple languages
           </p>
         </motion.div>
 
@@ -169,6 +224,67 @@ export default function CreateLesson() {
                     </div>
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Topic Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Topic Category
+              </label>
+              <select
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
+              >
+                <option value="">Select a topic category</option>
+                <option value="culture">Cultural Studies</option>
+                <option value="crypto">Crypto & Web3</option>
+                <option value="food">African Cuisine</option>
+                                        <option value="technology">Modern Technology</option>
+                        <option value="business">Business & Entrepreneurship</option>
+                        <option value="health">Health & Wellness</option>
+                        <option value="environment">Environmental Science</option>
+                <option value="custom">Custom Topic</option>
+              </select>
+            </div>
+
+            {/* Lesson Type Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Lesson Type
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setLessonType('personal')}
+                  className={`p-3 rounded-lg border-2 transition-all duration-200 ${
+                    lessonType === 'personal'
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">🔒</div>
+                    <div className="text-sm font-medium">Personal Lesson</div>
+                    <div className="text-xs text-gray-500">Private, only you can see</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLessonType('community')}
+                  className={`p-3 rounded-lg border-2 transition-all duration-200 ${
+                    lessonType === 'community'
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">🌍</div>
+                    <div className="text-sm font-medium">Community Lesson</div>
+                    <div className="text-xs text-gray-500">Public, everyone can see</div>
+                  </div>
+                </button>
               </div>
             </div>
 
