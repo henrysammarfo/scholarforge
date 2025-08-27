@@ -3,6 +3,9 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
+import { useAccount } from 'wagmi';
+import { walletProfileManager } from '../utils/walletProfileManager';
+import { enhancedLessonManager } from '../utils/enhancedLessonManager';
 import {
   GlobeAltIcon,
   FireIcon,
@@ -11,117 +14,272 @@ import {
   BookOpenIcon,
   TrophyIcon
 } from '@heroicons/react/24/outline';
+
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const { navigateToLearn, isDark, setIsDark } = useNavigation();
+  const { address, isConnected } = useAccount();
 
-  const baseUser = {
-    name: "Kwame Asante",
-    avatar: "🇬🇭",
-    level: 1,
-    xp: 0,
-    totalXP: 0,
-    streak: 0,
-    languages: [],
-    nfts: 0,
-    quizzesCompleted: 0,
-    accuracy: 0
-  };
-
-  const [user, setUser] = useState(baseUser);
+  const [user, setUser] = useState(null);
   const [skillNFTs, setSkillNFTs] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [userLessons, setUserLessons] = useState([]);
 
+  // Load wallet profile when wallet connects
   useEffect(() => {
-    try {
-      const xp = Number(localStorage.getItem('sf_user_xp') || '0');
-      const quizzesCompleted = Number(localStorage.getItem('sf_quizzes_completed') || '0');
-      const nfts = JSON.parse(localStorage.getItem('sf_skill_nfts') || '[]');
-      
-      // Calculate level from XP (100 XP per level)
-      const level = Math.max(1, Math.floor(xp / 100) + 1);
-      
-      // Calculate accuracy (if quizzes completed)
-      const accuracy = quizzesCompleted > 0 ? Math.round((xp / (quizzesCompleted * 100)) * 100) : 0;
-      
-      // Get unique languages from localStorage
-      const selectedLangs = JSON.parse(localStorage.getItem('sf_completed_languages') || '[]');
-      
-      setUser((u) => ({ 
-        ...u, 
-        xp, 
-        totalXP: xp,
-        quizzesCompleted, 
-        level,
-        accuracy: Math.min(100, accuracy), // Cap at 100%
-        nfts: nfts.length,
-        languages: selectedLangs
-      }));
-      setSkillNFTs(nfts);
-    } catch {}
-  }, []);
+    if (address && isConnected) {
+      loadWalletProfile();
+    }
+  }, [address, isConnected]);
 
-  // Real-time updates from localStorage changes
-  useEffect(() => {
-    const handleStorageChange = () => {
-      try {
-        const xp = Number(localStorage.getItem('sf_user_xp') || '0');
-        const quizzesCompleted = Number(localStorage.getItem('sf_quizzes_completed') || '0');
-        const nfts = JSON.parse(localStorage.getItem('sf_skill_nfts') || '[]');
-        const selectedLangs = JSON.parse(localStorage.getItem('sf_completed_languages') || '[]');
-        
-        const level = Math.max(1, Math.floor(xp / 100) + 1);
-        const accuracy = quizzesCompleted > 0 ? Math.round((xp / (quizzesCompleted * 100)) * 100) : 0;
-        
-        setUser((u) => ({ 
-          ...u, 
-          xp, 
-          totalXP: xp,
-          quizzesCompleted, 
-          level,
-          accuracy: Math.min(100, accuracy),
-          nfts: nfts.length,
-          languages: selectedLangs
-        }));
-        setSkillNFTs(nfts);
-        setRecentActivity(getRecentActivity());
-      } catch {}
-    };
+  const loadWalletProfile = () => {
+    if (!address) return;
 
-    // Listen for storage events
-    window.addEventListener('storage', handleStorageChange);
+    // Get or create profile for this wallet
+    const profile = walletProfileManager.getOrCreateProfile(address);
     
-    // Also check for changes every 2 seconds (for same-tab updates)
-    const interval = setInterval(handleStorageChange, 2000);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
-  }, []);
+    if (profile) {
+      setUser({
+        name: profile.name,
+        avatar: profile.avatar,
+        level: profile.stats.currentLevel,
+        xp: profile.stats.totalXP,
+        totalXP: profile.stats.totalXP,
+        streak: profile.stats.currentStreak,
+        languages: profile.learningProgress.map(lang => lang.language),
+        nfts: profile.skillNFTs.length,
+        quizzesCompleted: profile.stats.quizzesCompleted,
+        accuracy: profile.stats.accuracy || 0
+      });
 
-  // Get real recent activity from localStorage
-  const getRecentActivity = () => {
-    try {
-      return JSON.parse(localStorage.getItem('sf_recent_activity') || '[]');
-    } catch {
-      return [];
+      setSkillNFTs(profile.skillNFTs);
+      // Get real-time activity from profile
+      const realRecentActivity = [];
+      
+      if (profile.recentActivity && profile.recentActivity.length > 0) {
+        profile.recentActivity.slice(0, 5).forEach(activity => {
+          switch (activity.type) {
+            case 'quiz_completed':
+              realRecentActivity.push({
+                type: "quiz",
+                title: `Completed Quiz`,
+                xp: activity.data.xpEarned || 50,
+                date: new Date(activity.timestamp).toLocaleDateString(),
+                language: activity.data.language || 'English'
+              });
+              break;
+            case 'lesson_completed':
+              realRecentActivity.push({
+                type: "course",
+                title: `Completed Lesson`,
+                xp: activity.data.xpEarned || 25,
+                date: new Date(activity.timestamp).toLocaleDateString(),
+                language: activity.data.language || 'English'
+              });
+              break;
+            case 'xp_gained':
+              realRecentActivity.push({
+                type: "xp",
+                title: `Gained ${activity.data.xp} XP`,
+                xp: activity.data.xp,
+                date: new Date(activity.timestamp).toLocaleDateString(),
+                language: "Level Up!"
+              });
+              break;
+          }
+        });
+      }
+      
+      // If no real activity, show placeholder
+      if (realRecentActivity.length === 0) {
+        realRecentActivity.push({
+          type: "quiz",
+          title: "No recent activity",
+          xp: 0,
+          date: "Start learning to see activity here",
+          language: "English"
+        });
+      }
+      
+      setRecentActivity(realRecentActivity);
+      
+      // Load user's created lessons
+      const lessons = enhancedLessonManager.getUserLessons(address);
+      setUserLessons(lessons);
     }
   };
 
-  const [recentActivity, setRecentActivity] = useState(getRecentActivity());
+  // Real-time updates when wallet profile changes
+  useEffect(() => {
+    if (!address || !isConnected) return;
 
-  const learningStats = [
-    { label: 'Languages', value: user.languages.length, icon: GlobeAltIcon, color: 'primary' },
-    { label: 'Quizzes Completed', value: user.quizzesCompleted, icon: CheckCircleIcon, color: 'success' },
-    { label: 'Current Streak', value: user.streak, icon: FireIcon, color: 'secondary' },
-    { label: 'Accuracy', value: `${user.accuracy}%`, icon: StarIcon, color: 'success' }
-  ];
+    const handleProfileUpdate = () => {
+      loadWalletProfile();
+    };
 
-  const nfts = [
-    { id: 1, name: 'Language Hero: Twi', image: '🏆', rarity: 'Legendary' },
-    { id: 2, name: 'Math Master', image: '📐', rarity: 'Rare' },
-    { id: 3, name: 'Cultural Explorer', image: '🌍', rarity: 'Common' }
-  ];
+    // Check for profile updates every 2 seconds for real-time feel
+    const interval = setInterval(handleProfileUpdate, 2000);
+    
+    // Also listen for storage changes (when quizzes/lessons are completed)
+    const handleStorageChange = (e) => {
+      if (e.key && (e.key.includes('quiz') || e.key.includes('lesson') || e.key.includes('xp'))) {
+        loadWalletProfile();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [address, isConnected]);
+
+  // Show loading state when wallet not connected
+  if (!address || !isConnected) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
+        <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              Welcome to ScholarForge
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
+              Connect your wallet to access your personalized learning dashboard
+            </p>
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 max-w-md mx-auto">
+              <div className="text-6xl mb-4">🎓</div>
+              <p className="text-gray-600 dark:text-gray-300">
+                Your learning journey starts here. Connect your wallet to continue.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state when profile not loaded
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
+        <Header onToggleTheme={() => setIsDark(!isDark)} isDark={isDark} />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-300">Loading your profile...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Generate learning stats based on current user data
+  const getLearningStats = () => {
+    if (!user) return [];
+    
+    return [
+      { label: 'Languages', value: user.languages?.length || 0, icon: GlobeAltIcon, color: 'primary' },
+      { label: 'Quizzes Completed', value: user.quizzesCompleted || 0, icon: CheckCircleIcon, color: 'success' },
+      { label: 'Current Streak', value: user.streak || 0, icon: FireIcon, color: 'secondary' },
+      { label: 'Accuracy', value: `${user.accuracy || 0}%`, icon: StarIcon, color: 'success' }
+    ];
+  };
+
+  // Generate achievements based on actual user progress
+  const generateAchievements = () => {
+    const achievements = [];
+    
+    // First Quiz Completed
+    if (user.quizzesCompleted >= 1) {
+      achievements.push({
+        id: 1,
+        title: "First Quiz Completed",
+        description: "Completed your first quiz",
+        icon: "🎯",
+        earned: true,
+        date: new Date().toLocaleDateString()
+      });
+    }
+    
+    // Week Warrior (7-day streak)
+    if (user.streak >= 7) {
+      achievements.push({
+        id: 2,
+        title: "Week Warrior",
+        description: "7-day learning streak",
+        icon: "🔥",
+        earned: true,
+        date: new Date().toLocaleDateString()
+      });
+    }
+    
+    // Language Explorer (learned multiple languages)
+    if (user.languages.length >= 2) {
+      achievements.push({
+        id: 3,
+        title: "Language Explorer",
+        description: `Learned ${user.languages.length} languages`,
+        icon: "🌍",
+        earned: true,
+        date: new Date().toLocaleDateString()
+      });
+    }
+    
+    // XP Milestone
+    if (user.xp >= 1000) {
+      achievements.push({
+        id: 4,
+        title: "XP Master",
+        description: "Earned 1000+ XP",
+        icon: "⭐",
+        earned: true,
+        date: new Date().toLocaleDateString()
+      });
+    }
+    
+    // Level Achiever
+    if (user.level >= 5) {
+      achievements.push({
+        id: 5,
+        title: "Level Achiever",
+        description: `Reached level ${user.level}`,
+        icon: "🏆",
+        earned: true,
+        date: new Date().toLocaleDateString()
+      });
+    }
+    
+    // Add unearned achievements for motivation
+    if (user.quizzesCompleted < 5) {
+      achievements.push({
+        id: 6,
+        title: "Quiz Enthusiast",
+        description: "Complete 5 quizzes",
+        icon: "📚",
+        earned: false,
+        date: null
+      });
+    }
+    
+    if (user.streak < 30) {
+      achievements.push({
+        id: 7,
+        title: "Monthly Master",
+        description: "30-day learning streak",
+        icon: "📅",
+        earned: false,
+        date: null
+      });
+    }
+    
+    return achievements;
+  };
+
+  const achievements = generateAchievements();
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
@@ -175,7 +333,10 @@ export default function Dashboard() {
             <button onClick={navigateToLearn} className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors">
               Start Learning
             </button>
-            <button className="border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg">
+            <button 
+              onClick={() => window.location.href = '/profile'}
+              className="border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
               Edit Profile
             </button>
           </div>
@@ -210,7 +371,7 @@ export default function Dashboard() {
           >
             {/* Learning Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {learningStats.map((stat, index) => (
+              {getLearningStats().map((stat, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
@@ -271,10 +432,14 @@ export default function Dashboard() {
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Language Progress</h2>
               <div className="space-y-4">
                 {user.languages.map((language, index) => {
-                  // Calculate real progress based on completed quizzes and XP
-                  const languageXP = Number(localStorage.getItem(`sf_language_xp_${language}`) || '0');
-                  const languageQuizzes = Number(localStorage.getItem(`sf_language_quizzes_${language}`) || '0');
-                  const progress = languageQuizzes > 0 ? Math.min(100, (languageXP / (languageQuizzes * 100)) * 100) : 0;
+                  // Get real progress from wallet profile
+                  const profile = walletProfileManager.getProfile(address);
+                  const langProgress = profile?.learningProgress?.find(l => l.language === language);
+                  const languageXP = langProgress?.xp || 0;
+                  const languageQuizzes = langProgress?.quizzesCompleted || 0;
+                  const languageLessons = langProgress?.lessonsCompleted || 0;
+                  const totalActivities = languageQuizzes + languageLessons;
+                  const progress = totalActivities > 0 ? Math.min(100, (languageXP / (totalActivities * 50)) * 100) : 0;
                   
                   return (
                     <div key={index} className="border-b border-gray-200 dark:border-gray-700 pb-4 last:border-b-0">
@@ -284,6 +449,179 @@ export default function Dashboard() {
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div className="bg-primary-600 h-2 rounded-full" style={{ width: `${progress}%` }}></div>
+                      </div>
+                      <div className="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        <span>{languageXP} XP</span>
+                        <span>{totalActivities} activities</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Achievements */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Your Achievements</h2>
+              {achievements.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {achievements.map((achievement) => (
+                    <div key={achievement.id} className={`p-4 border rounded-lg ${
+                      achievement.earned 
+                        ? 'border-green-200 bg-green-50 dark:border-green-700 dark:bg-green-900/20' 
+                        : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800'
+                    }`}>
+                      <div className="flex items-center space-x-3">
+                        <div className="text-2xl">{achievement.icon}</div>
+                        <div className="flex-1">
+                          <h3 className={`font-medium ${
+                            achievement.earned 
+                              ? 'text-green-900 dark:text-green-100' 
+                              : 'text-gray-500 dark:text-gray-400'
+                          }`}>
+                            {achievement.title}
+                          </h3>
+                          <p className={`text-sm ${
+                            achievement.earned 
+                              ? 'text-green-700 dark:text-green-200' 
+                              : 'text-gray-400 dark:text-gray-500'
+                          }`}>
+                            {achievement.description}
+                          </p>
+                          {achievement.earned && achievement.date && (
+                            <p className="text-xs text-green-600 dark:text-green-300 mt-1">
+                              Earned: {achievement.date}
+                            </p>
+                          )}
+                        </div>
+                        {achievement.earned && (
+                          <div className="text-green-500">
+                            <CheckCircleIcon className="h-5 w-5" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-2">🏆</div>
+                  <p className="text-gray-600 dark:text-gray-300">No achievements yet. Start learning to earn your first badge!</p>
+                </div>
+              )}
+            </div>
+
+            {/* Recent Activities */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Activities</h2>
+              {(() => {
+                const activities = [];
+                
+                // Get recent quiz completions
+                const completedQuizzes = user.completedQuizzes || [];
+                completedQuizzes.slice(0, 5).forEach(quiz => {
+                  activities.push({
+                    type: 'quiz',
+                    icon: '🎯',
+                    title: `Completed ${quiz.topic} Quiz`,
+                    description: `Earned ${quiz.xpEarned} XP`,
+                    time: new Date(quiz.completedAt).toLocaleDateString(),
+                    color: 'text-green-600'
+                  });
+                });
+                
+                // Get recent lesson completions
+                const completedLessons = user.completedLessons || [];
+                completedLessons.slice(0, 5).forEach(lesson => {
+                  activities.push({
+                    type: 'lesson',
+                    icon: '📚',
+                    title: `Completed ${lesson.topic} Lesson`,
+                    description: `Earned ${lesson.xpEarned} XP`,
+                    time: new Date(lesson.completedAt).toLocaleDateString(),
+                    color: 'text-blue-600'
+                  });
+                });
+                
+                // Get recent XP gains
+                if (user.xp > 0) {
+                  activities.push({
+                    type: 'xp',
+                    icon: '⭐',
+                    title: 'XP Milestone Reached',
+                    description: `Total XP: ${user.xp.toLocaleString()}`,
+                    time: 'Today',
+                    color: 'text-yellow-600'
+                  });
+                }
+                
+                // Sort by time (most recent first)
+                activities.sort((a, b) => new Date(b.time) - new Date(a.time));
+                
+                return activities.length > 0 ? (
+                  <div className="space-y-3">
+                    {activities.slice(0, 5).map((activity, index) => (
+                      <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="text-2xl">{activity.icon}</div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 dark:text-white">{activity.title}</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{activity.description}</p>
+                        </div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{activity.time}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-2">📝</div>
+                    <p className="text-gray-600 dark:text-gray-300">No activities yet. Start learning to see your progress!</p>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Language Learning Progress */}
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Language Learning Progress</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {['English', 'Twi', 'Yoruba', 'Swahili', 'French', 'Spanish', 'Hindi', 'Arabic', 'Chinese', 'Portuguese'].map((language) => {
+                  const profile = walletProfileManager.getProfile(address);
+                  const langProgress = profile?.learningProgress?.find(l => l.language === language);
+                  const langXP = langProgress?.xp || 0;
+                  const langLessons = langProgress?.lessonsCompleted || 0;
+                  const progress = langLessons > 0 ? Math.min(100, (langXP / (langLessons * 50)) * 100) : 0;
+                  
+                  const flags = {
+                    'English': '🇺🇸',
+                    'Twi': '🇬🇭',
+                    'Yoruba': '🇳🇬',
+                    'Swahili': '🇰🇪',
+                    'French': '🇫🇷',
+                    'Spanish': '🇪🇸',
+                    'Hindi': '🇮🇳',
+                    'Arabic': '🇸🇦',
+                    'Chinese': '🇨🇳',
+                    'Portuguese': '🇵🇹'
+                  };
+                  
+                  return (
+                    <div key={language} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                      <div className="flex items-center mb-2">
+                        <span className="text-lg mr-2">{flags[language]}</span>
+                        <h3 className="font-medium text-gray-900 dark:text-white">{language}</h3>
+                      </div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-600 dark:text-gray-300">{langXP} XP</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">{langLessons} lessons</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full" 
+                            style={{ width: `${progress}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">{Math.round(progress)}%</span>
                       </div>
                     </div>
                   );
@@ -295,24 +633,33 @@ export default function Dashboard() {
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Topic Progress</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {['culture', 'crypto', 'food', 'sports', 'science', 'business'].map((topicId) => {
+                {['culture', 'crypto', 'food', 'technology', 'business', 'health', 'environment'].map((topicId) => {
                   const topicNames = {
                     culture: 'Cultural Studies',
-                    crypto: 'Crypto & Web3',
+                    crypto: 'Cryptocurrency',
                     food: 'African Cuisine',
-                    sports: 'Sports & Fitness',
-                    science: 'Science & Technology',
-                    business: 'Business & Entrepreneurship'
+                    technology: 'Modern Technology',
+                    business: 'Business & Entrepreneurship',
+                    health: 'Health & Wellness',
+                    environment: 'Environmental Science'
                   };
                   
-                  // Get real progress from localStorage
-                  const topicXP = Number(localStorage.getItem(`sf_topic_xp_${topicId}`) || '0');
-                  const topicQuizzes = Number(localStorage.getItem(`sf_topic_quizzes_${topicId}`) || '0');
-                  const progress = topicQuizzes > 0 ? Math.min(100, (topicXP / (topicQuizzes * 100)) * 100) : 0;
+                  // Get real progress from user profile
+                  const profile = walletProfileManager.getProfile(address);
+                  const topicProgress = profile?.topicProgress?.find(t => t.topic === topicId);
+                  const topicXP = topicProgress?.xp || 0;
+                  const topicQuizzes = topicProgress?.quizzesCompleted || 0;
+                  const topicLessons = topicProgress?.lessonsCompleted || 0;
+                  const totalActivities = topicQuizzes + topicLessons;
+                  const progress = totalActivities > 0 ? Math.min(100, (topicXP / (totalActivities * 50)) * 100) : 0;
                   
                   return (
                     <div key={topicId} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                       <h3 className="font-medium text-gray-900 dark:text-white mb-2">{topicNames[topicId]}</h3>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-gray-600 dark:text-gray-300">{topicXP} XP</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">{totalActivities} activities</span>
+                      </div>
                       <div className="flex items-center justify-between">
                         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
                           <div 
@@ -385,23 +732,116 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Mock NFTs for Demo */}
+                        {/* My Lessons Section */}
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Achievement NFTs (Demo)</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {nfts.map((nft) => (
-                  <div key={nft.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center">
-                    <div className="text-4xl mb-2">{nft.image}</div>
-                    <h3 className="font-medium text-gray-900 dark:text-white mb-1">{nft.name}</h3>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      nft.rarity === 'Legendary' ? 'bg-yellow-100 text-yellow-800' :
-                      nft.rarity === 'Rare' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {nft.rarity}
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">My Created Lessons</h2>
+              
+              {/* Personal Lessons */}
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center">
+                  <span className="text-xl mr-2">🔒</span>
+                  Personal Lessons
+                </h3>
+                {(() => {
+                  const personalLessons = enhancedLessonManager.getPersonalLessons(address);
+                  return personalLessons.length > 0 ? (
+                    <div className="space-y-3">
+                      {personalLessons.slice(0, 3).map((lesson) => (
+                        <div key={lesson.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-800">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium text-gray-900 dark:text-white text-sm">{lesson.title}</h4>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                  {lesson.language}
+                                </span>
+                                <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
+                                  {lesson.topic}
+                                </span>
+                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                  Personal
+                                </span>
+                              </div>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                localStorage.setItem('sf_selected_topic_id', lesson.topic?.toLowerCase() || 'culture');
+                                localStorage.setItem('sf_selected_topic_name', lesson.topic || 'Cultural Studies');
+                                localStorage.setItem('sf_selected_language_code', lesson.language?.toLowerCase() || 'en');
+                                localStorage.setItem('sf_selected_language_name', lesson.language || 'English');
+                                window.location.href = '/course';
+                              }}
+                              className="text-blue-600 hover:text-blue-700 text-xs font-medium"
+                            >
+                              View →
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 italic">No personal lessons yet</p>
+                  );
+                })()}
+              </div>
+
+              {/* Community Lessons */}
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center">
+                  <span className="text-xl mr-2">🌍</span>
+                  Community Lessons
+                </h3>
+                {(() => {
+                  const communityLessons = enhancedLessonManager.getCommunityLessons(address);
+                  return communityLessons.length > 0 ? (
+                    <div className="space-y-3">
+                      {communityLessons.slice(0, 3).map((lesson) => (
+                        <div key={lesson.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium text-gray-900 dark:text-white text-sm">{lesson.title}</h4>
+                              <div className="flex items-center space-x-2 mt-1">
+                                <span className="text-xs bg-primary-100 text-primary-800 px-2 py-1 rounded-full">
+                                  {lesson.language}
+                                </span>
+                                <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
+                                  {lesson.topic}
+                                </span>
+                                <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                                  Community
                     </span>
+                              </div>
+                            </div>
+                            <button 
+                              onClick={() => {
+                                localStorage.setItem('sf_selected_topic_id', lesson.topic?.toLowerCase() || 'culture');
+                                localStorage.setItem('sf_selected_topic_name', lesson.topic || 'Cultural Studies');
+                                localStorage.setItem('sf_selected_language_code', lesson.language?.toLowerCase() || 'en');
+                                localStorage.setItem('sf_selected_language_name', lesson.language || 'English');
+                                window.location.href = '/course';
+                              }}
+                              className="text-primary-600 hover:text-primary-700 text-xs font-medium"
+                            >
+                              View →
+                            </button>
+                          </div>
                   </div>
                 ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 italic">No community lessons yet</p>
+                  );
+                })()}
+              </div>
+
+              {/* Create New Lesson Button */}
+              <div className="text-center pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button 
+                  onClick={() => window.location.href = '/create-lesson'}
+                  className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 text-sm"
+                >
+                  Create New Lesson
+                </button>
               </div>
             </div>
           </motion.div>

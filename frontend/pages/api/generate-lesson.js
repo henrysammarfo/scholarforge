@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { prompt, language = 'en' } = req.body;
+  const { prompt, language = 'en', topic = 'custom' } = req.body;
 
   if (!prompt) {
     return res.status(400).json({ error: 'Prompt is required' });
@@ -12,21 +12,20 @@ export default async function handler(req, res) {
   console.log(`[AI API] Generating lesson for prompt: "${prompt}" in language: ${language}`);
 
   try {
-    // Check if real AI is enabled via environment variable
-    const useRealAI = process.env.USE_REAL_AI === 'true';
-    
     let lessonContent;
     
-    if (useRealAI && process.env.OPENAI_API_KEY) {
-      lessonContent = await generateWithOpenAI(prompt, language);
+    // Always try to use real AI if API key is available
+    if (process.env.OPENAI_API_KEY) {
+      try {
+        lessonContent = await generateWithOpenAI(prompt, language, topic);
+        console.log('[AI API] Successfully generated lesson with OpenAI');
+      } catch (aiError) {
+        console.error('[AI API] OpenAI failed, falling back to mock:', aiError);
+        lessonContent = generateMockLesson(prompt, language, topic);
+      }
     } else {
-      // DEMO MODE: Using intelligent mock AI responses
-      console.log('[AI API] Using mock AI (set USE_REAL_AI=true and OPENAI_API_KEY to use real AI)');
-      
-      // Simulate AI processing time for realistic demo
-      await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
-      
-      lessonContent = generateMockLesson(prompt, language);
+      console.log('[AI API] No OpenAI API key, using mock AI');
+      lessonContent = generateMockLesson(prompt, language, topic);
     }
     
     console.log(`[AI API] Successfully generated lesson: "${lessonContent.lessonTitle}"`);
@@ -37,33 +36,55 @@ export default async function handler(req, res) {
   }
 }
 
-async function generateWithOpenAI(prompt, language) {
+async function generateWithOpenAI(prompt, language, topic) {
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
   
-  const systemPrompt = `You are an AI tutor creating educational content for African learners. Generate lessons that are:
-- Culturally relevant to African contexts
-- Practical and applicable to local situations
-- Include real examples from African countries
-- Appropriate for ${language === 'sw' ? 'Swahili speakers' : 'English speakers'}
-- Focus on skills that are valuable in African economies
+  // Map language codes to full names for better AI understanding
+  const languageMap = {
+    'en': 'English',
+    'tw': 'Twi',
+    'yo': 'Yoruba', 
+    'sw': 'Swahili',
+    'fr': 'French',
+    'es': 'Spanish',
+    'hi': 'Hindi',
+    'ar': 'Arabic',
+    'zh': 'Chinese',
+    'pt': 'Portuguese'
+  };
+
+  const selectedLanguage = languageMap[language] || 'English';
+  
+  const systemPrompt = `You are an AI tutor creating educational content in ${selectedLanguage}. Generate lessons that are:
+- Educational and informative for ${selectedLanguage} speakers
+- Practical and applicable to real-world situations
+- Include relevant examples and context
+- Written entirely in ${selectedLanguage} (except for technical terms that may remain in English)
+- Focus on skills that are valuable in today's world
+- Specifically related to the topic: ${topic}
+- Contextually relevant to the user's prompt within the ${topic} domain
 
 Generate the response in the following JSON format:
 {
-  "lessonTitle": "Title of the lesson",
-  "lessonContent": "Full lesson content with examples and explanations",
+  "lessonTitle": "Title of the lesson in ${selectedLanguage}",
+  "lessonContent": "Full lesson content in ${selectedLanguage} with examples and explanations",
   "quiz": [
     {
-      "question": "Question text",
-      "options": ["option1", "option2", "option3", "option4"],
+      "question": "Question text in ${selectedLanguage}",
+      "options": ["option1 in ${selectedLanguage}", "option2 in ${selectedLanguage}", "option3 in ${selectedLanguage}", "option4 in ${selectedLanguage}"],
       "correct": 0,
-      "explanation": "Why this answer is correct"
+      "explanation": "Why this answer is correct in ${selectedLanguage}"
     }
   ]
 }`;
 
   const userPrompt = `Create a lesson about: ${prompt}
-Language: ${language === 'sw' ? 'Swahili' : 'English'}
-Focus on African applications and contexts.`;
+Topic: ${topic}
+Language: ${selectedLanguage}
+
+The lesson should be specifically about ${prompt} within the context of ${topic}. For example, if the topic is "crypto wallet" and the prompt is "Bitcoin", create a lesson about Bitcoin specifically in the context of cryptocurrency wallets and blockchain technology.
+
+Generate the entire lesson, including title, content, and quiz questions, in ${selectedLanguage}.`;
 
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -96,12 +117,11 @@ Focus on African applications and contexts.`;
     return lessonData;
   } catch (error) {
     console.error('OpenAI API error:', error);
-    // Fallback to mock if OpenAI fails
-    return generateMockLesson(prompt, language);
+    throw error; // Let the main handler deal with it
   }
 }
 
-function generateMockLesson(prompt, language) {
+function generateMockLesson(prompt, language, topic) {
   // Mock AI-generated content with African context
   const lessonTemplates = {
     python: {
@@ -237,48 +257,50 @@ Digital money that works without traditional banks. In Africa, this could help p
     },
     default: {
       en: {
-        title: `Learning About: ${prompt}`,
-        content: `This lesson covers the fundamentals of ${prompt} with a focus on African contexts and applications.
+        title: `Learning About: ${prompt} in ${topic}`,
+        content: `This lesson covers the fundamentals of ${prompt} within the context of ${topic}, with a focus on African contexts and applications.
 
 **Introduction:**
-Understanding ${prompt} is important for developing skills relevant to African markets and opportunities.
+Understanding ${prompt} in the context of ${topic} is important for developing skills relevant to African markets and opportunities.
 
 **Key Concepts:**
-- Foundational principles of ${prompt}
-- Applications in African contexts
+- Foundational principles of ${prompt} as they relate to ${topic}
+- Applications of ${prompt} in ${topic} contexts
 - Real-world examples from across the continent
-- Practical skills you can apply immediately
+- Practical skills you can apply immediately in ${topic}
 
 **African Perspective:**
-Many concepts in ${prompt} have unique applications in African settings, from mobile-first solutions to community-based approaches.
+Many concepts in ${prompt} and ${topic} have unique applications in African settings, from mobile-first solutions to community-based approaches.
 
 **Next Steps:**
-After completing this lesson, you'll have a solid foundation to explore ${prompt} further and apply it in your local context.`,
+After completing this lesson, you'll have a solid foundation to explore ${prompt} within ${topic} further and apply it in your local context.`,
         quiz: [
           {
-            question: `What is the main focus of this lesson on ${prompt}?`,
+            question: `What is the main focus of this lesson on ${prompt} in ${topic}?`,
             options: ["African applications", "General theory", "History only", "Technical details"],
             correct: 0,
-            explanation: `This lesson emphasizes African applications and contexts for ${prompt}.`
+            explanation: `This lesson emphasizes African applications and contexts for ${prompt} within ${topic}.`
           },
           {
-            question: "Why is local context important when learning new skills?",
+            question: `Why is understanding ${prompt} in the context of ${topic} important?`,
             options: ["It's not important", "Makes learning more relevant", "Only for entertainment", "Reduces difficulty"],
             correct: 1,
-            explanation: "Local context makes learning more relevant and applicable to real-world situations in your environment."
+            explanation: `Understanding ${prompt} within ${topic} makes learning more relevant and applicable to real-world situations in your environment.`
           }
         ]
       }
     }
   };
 
-  // Determine which template to use based on prompt
+  // Determine which template to use based on prompt and topic
   let template;
   const lowerPrompt = prompt.toLowerCase();
+  const lowerTopic = topic.toLowerCase();
   
-  if (lowerPrompt.includes('python') || lowerPrompt.includes('programming')) {
+  // First check if topic matches any specific templates
+  if (lowerTopic.includes('technology') || lowerTopic.includes('programming') || lowerPrompt.includes('python') || lowerPrompt.includes('programming')) {
     template = lessonTemplates.python[language] || lessonTemplates.python.en;
-  } else if (lowerPrompt.includes('blockchain') || lowerPrompt.includes('crypto') || lowerPrompt.includes('web3')) {
+  } else if (lowerTopic.includes('crypto') || lowerTopic.includes('blockchain') || lowerPrompt.includes('blockchain') || lowerPrompt.includes('crypto') || lowerPrompt.includes('web3')) {
     template = lessonTemplates.blockchain[language] || lessonTemplates.blockchain.en;
   } else {
     template = lessonTemplates.default[language] || lessonTemplates.default.en;

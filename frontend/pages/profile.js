@@ -1,9 +1,11 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { walletProfileManager } from '../utils/walletProfileManager';
+import { languageManager } from '../utils/languageManager';
 import { 
   AcademicCapIcon, 
   UserIcon,
@@ -34,17 +36,18 @@ export default function Profile() {
   const { disconnect } = useDisconnect();
   
   const [profileData, setProfileData] = useState({
-    name: "Kwame Asante",
-    username: "kwame_scholar",
-    email: "kwame@example.com",
-    bio: "Passionate about learning African languages and sharing cultural knowledge with the community.",
-    location: "Accra, Ghana",
-    website: "https://kwamescholar.com",
-    avatar: "🇬🇭",
+    name: "",
+    username: "",
+    email: "",
+    bio: "",
+    location: "",
+    website: "",
+    avatar: "🎓",
     profileImage: null,
-    joinedDate: "January 2024",
+    joinedDate: "",
+    displayName: "",
     connections: {
-      wallet: isConnected ? address : null,
+      wallet: null,
       google: null,
       twitter: null,
       linkedin: null,
@@ -95,7 +98,7 @@ export default function Profile() {
   };
 
   const handleSocialConnect = (platform) => {
-    // Mock social connection - in production, integrate with OAuth providers
+            // Social connection - integrate with OAuth providers
     alert(`Connecting to ${platform}... (Demo - Integration needed)`);
     setProfileData({
       ...profileData,
@@ -116,34 +119,275 @@ export default function Profile() {
     });
   };
 
-  const stats = {
-    totalXP: 8500,
-    currentLevel: 15,
-    quizzesCompleted: 87,
-    coursesCompleted: 12,
-    communityContributions: 23,
-    languagesLearning: 4,
-    currentStreak: 12,
-    longestStreak: 45
+  const [stats, setStats] = useState({
+    totalXP: 0,
+    currentLevel: 1,
+    quizzesCompleted: 0,
+    coursesCompleted: 0,
+    communityContributions: 0,
+    languagesLearning: 1,
+    currentStreak: 0,
+    longestStreak: 0
+  });
+
+  // Generate real achievements based on actual user progress
+  const generateRealAchievements = (learningProgress) => {
+    if (!stats) return [];
+    
+    // Ensure learningProgress is defined
+    const progress = learningProgress || [];
+    
+    // Ensure stats has all required properties
+    const safeStats = {
+      totalXP: stats.totalXP || 0,
+      currentLevel: stats.currentLevel || 1,
+      quizzesCompleted: stats.quizzesCompleted || 0,
+      currentStreak: stats.currentStreak || 0
+    };
+    
+    const achievements = [];
+    
+    // First Quiz Completed
+    if (safeStats.quizzesCompleted >= 1) {
+      achievements.push({
+        id: 1,
+        title: "First Quiz Completed",
+        description: "Completed your first quiz",
+        icon: "🎯",
+        earned: true,
+        date: new Date().toLocaleDateString()
+      });
+    }
+    
+    // Week Warrior (7-day streak)
+    if (safeStats.currentStreak >= 7) {
+      achievements.push({
+        id: 2,
+        title: "Week Warrior",
+        description: "7-day learning streak",
+        icon: "🔥",
+        earned: true,
+        date: new Date().toLocaleDateString()
+      });
+    }
+    
+    // Language Explorer (learned multiple languages)
+    if (progress && progress.length >= 2) {
+      achievements.push({
+        id: 3,
+        title: "Language Explorer",
+        description: `Learned ${progress.length} languages`,
+        icon: "🌍",
+        earned: true,
+        date: new Date().toLocaleDateString()
+      });
+    }
+    
+    // XP Milestone
+    if (safeStats.totalXP >= 1000) {
+      achievements.push({
+        id: 4,
+        title: "XP Master",
+        description: "Earned 1000+ XP",
+        icon: "⭐",
+        earned: true,
+        date: new Date().toLocaleDateString()
+      });
+    }
+    
+    // Level Achiever
+    if (safeStats.currentLevel >= 5) {
+      achievements.push({
+        id: 5,
+        title: "Level Achiever",
+        description: `Reached level ${safeStats.currentLevel}`,
+        icon: "🏆",
+        earned: true,
+        date: new Date().toLocaleDateString()
+      });
+    }
+    
+    // Quiz Enthusiast
+    if (safeStats.quizzesCompleted >= 5) {
+      achievements.push({
+        id: 6,
+        title: "Quiz Enthusiast",
+        description: "Completed 5 quizzes",
+        icon: "📚",
+        earned: true,
+        date: new Date().toLocaleDateString()
+      });
+    }
+    
+    // Add unearned achievements for motivation
+    if (safeStats.quizzesCompleted < 5) {
+      achievements.push({
+        id: 7,
+        title: "Quiz Enthusiast",
+        description: "Complete 5 quizzes",
+        icon: "📚",
+        earned: false,
+        date: null
+      });
+    }
+    
+    if (safeStats.currentStreak < 30) {
+      achievements.push({
+        id: 8,
+        title: "Monthly Master",
+        description: "30-day learning streak",
+        icon: "📅",
+        earned: false,
+        date: null
+      });
+    }
+    
+    if (!progress || progress.length < 5) {
+      achievements.push({
+        id: 9,
+        title: "Polyglot",
+        description: "Learn 5 languages",
+        icon: "🌍",
+        earned: false,
+        date: null
+      });
+    }
+    
+    if (safeStats.currentLevel < 20) {
+      achievements.push({
+        id: 10,
+        title: "Master Learner",
+        description: "Reach level 20",
+        icon: "🎓",
+        earned: false,
+        date: null
+      });
+    }
+    
+    return achievements;
   };
 
-  const achievements = [
-    { id: 1, title: "First Quiz Completed", description: "Completed your first quiz", icon: "🎯", earned: true, date: "Jan 15, 2024" },
-    { id: 2, title: "Week Warrior", description: "7-day learning streak", icon: "🔥", earned: true, date: "Jan 22, 2024" },
-    { id: 3, title: "Culture Explorer", description: "Completed 5 culture quizzes", icon: "🏛️", earned: true, date: "Feb 3, 2024" },
-    { id: 4, title: "Language Hero: Twi", description: "Top contributor in Twi", icon: "🏆", earned: true, date: "Feb 10, 2024" },
-    { id: 5, title: "Community Helper", description: "Helped 10 other learners", icon: "🤝", earned: true, date: "Feb 15, 2024" },
-    { id: 6, title: "Master Learner", description: "Reach level 20", icon: "🎓", earned: false, date: null },
-    { id: 7, title: "Polyglot", description: "Learn 5 languages", icon: "🌍", earned: false, date: null },
-    { id: 8, title: "Quiz Master", description: "Create 10 quizzes", icon: "📝", earned: false, date: null }
-  ];
+  const [learningProgress, setLearningProgress] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
+  
+  // Generate achievements reactively based on current state
+  const achievements = useMemo(() => generateRealAchievements(learningProgress), [learningProgress, stats]);
 
-  const learningProgress = [
-    { language: "Twi", progress: 85, level: "Advanced", flag: "🇬🇭" },
-    { language: "English", progress: 95, level: "Expert", flag: "🇺🇸" },
-    { language: "Yoruba", progress: 60, level: "Intermediate", flag: "🇳🇬" },
-    { language: "French", progress: 30, level: "Beginner", flag: "🇫🇷" }
-  ];
+  // Load profile data when wallet connects
+  useEffect(() => {
+    if (address && isConnected) {
+      loadProfileData();
+    }
+  }, [address, isConnected]);
+
+  const loadProfileData = () => {
+    if (!address) return;
+
+    // Get or create profile for this wallet
+    const profile = walletProfileManager.getOrCreateProfile(address);
+    
+    if (profile) {
+      setProfileData({
+        name: profile.name || '',
+        username: profile.username || '',
+        email: profile.email || '',
+        bio: profile.bio || '',
+        location: profile.location || '',
+        website: profile.website || '',
+        avatar: profile.avatar || '🎓',
+        profileImage: profile.profileImage || null,
+        joinedDate: profile.joinedDate || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' }),
+        displayName: profile.displayName || profile.name || '',
+        connections: {
+          wallet: address,
+          google: profile.connections?.google || null,
+          twitter: profile.connections?.twitter || null,
+          linkedin: profile.connections?.linkedin || null,
+          github: profile.connections?.github || null
+        }
+      });
+
+      // Load stats
+      if (profile.stats) {
+        setStats(profile.stats);
+      }
+
+      // Load learning progress
+      if (profile.learningProgress) {
+        setLearningProgress(profile.learningProgress);
+      }
+
+      // Load recent activity
+      if (profile.recentActivity && profile.recentActivity.length > 0) {
+        const realRecentActivity = [];
+        profile.recentActivity.slice(0, 8).forEach(activity => {
+          switch (activity.type) {
+            case 'quiz_completed':
+              realRecentActivity.push({
+                type: "quiz",
+                title: `Completed Quiz`,
+                xp: activity.data.xpEarned || 50,
+                date: new Date(activity.timestamp).toLocaleDateString(),
+                language: activity.data.language || 'English'
+              });
+              break;
+            case 'lesson_completed':
+              realRecentActivity.push({
+                type: "course",
+                title: `Completed Lesson`,
+                xp: activity.data.xpEarned || 25,
+                date: new Date(activity.timestamp).toLocaleDateString(),
+                language: activity.data.language || 'English'
+              });
+              break;
+            case 'xp_gained':
+              realRecentActivity.push({
+                type: "xp",
+                title: `Gained ${activity.data.xp} XP`,
+                xp: activity.data.xp,
+                date: new Date(activity.timestamp).toLocaleDateString(),
+                language: "Level Up!"
+              });
+              break;
+          }
+        });
+        setRecentActivity(realRecentActivity);
+      } else {
+        setRecentActivity([{
+          type: "quiz",
+          title: "No recent activity",
+          xp: 0,
+          date: "Start learning to see activity here",
+          language: "English"
+        }]);
+      }
+
+      // Set as current profile
+      walletProfileManager.setCurrentWallet(address);
+    }
+  };
+
+  const saveProfileData = () => {
+    if (!address) return;
+
+    const updatedProfile = {
+      name: profileData.name,
+      username: profileData.username,
+      email: profileData.email,
+      bio: profileData.bio,
+      location: profileData.location,
+      website: profileData.website,
+      avatar: profileData.avatar,
+      profileImage: profileData.profileImage,
+      displayName: profileData.displayName || profileData.name
+    };
+
+    const savedProfile = walletProfileManager.updateProfile(address, updatedProfile);
+    if (savedProfile) {
+      setProfileData(prev => ({ ...prev, ...savedProfile }));
+      setIsEditing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-gray-900 dark:to-gray-800">
@@ -283,7 +527,22 @@ export default function Profile() {
                   <LinkIcon className="h-4 w-4 mr-2" />
                   Manage Connections
                 </button>
-                <button className="w-full bg-secondary-600 text-white py-2 px-4 rounded-lg hover:bg-secondary-700 transition-colors flex items-center justify-center">
+                <button 
+                  onClick={() => {
+                    const profileUrl = `${window.location.origin}/profile?wallet=${address}`;
+                    if (navigator.share) {
+                      navigator.share({
+                        title: `${profileData.name}'s Profile`,
+                        text: `Check out ${profileData.name}'s learning progress on ScholarForge!`,
+                        url: profileUrl
+                      });
+                    } else {
+                      navigator.clipboard.writeText(profileUrl);
+                      alert('Profile link copied to clipboard!');
+                    }
+                  }}
+                  className="w-full bg-secondary-600 text-white py-2 px-4 rounded-lg hover:bg-secondary-700 transition-colors flex items-center justify-center"
+                >
                   <ShareIcon className="h-4 w-4 mr-2" />
                   Share Profile
                 </button>
@@ -511,7 +770,7 @@ export default function Profile() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">Learning Progress</h2>
                 <button 
-                  onClick={() => setIsEditing(!isEditing)}
+                  onClick={() => isEditing ? saveProfileData() : setIsEditing(true)}
                   className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center"
                 >
                   <PencilIcon className="h-4 w-4 mr-2" />
@@ -591,13 +850,14 @@ export default function Profile() {
             >
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Recent Activity</h2>
               <div className="space-y-4">
-                {[{ type: "quiz", title: "Completed Ghanaian History Quiz", xp: 75, date: "2 hours ago", icon: "📚" },
-                  { type: "achievement", title: "Earned Community Helper badge", xp: 100, date: "1 day ago", icon: "🏆" },
-                  { type: "course", title: "Finished Traditional Arts course", xp: 150, date: "2 days ago", icon: "🎨" },
-                  { type: "quiz", title: "Created Crypto Basics Quiz", xp: 50, date: "3 days ago", icon: "₿" }].map((activity, index) => (
+                {recentActivity.map((activity, index) => (
                   <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{activity.icon}</span>
+                      <span className="text-2xl">
+                        {activity.type === 'quiz' ? '📚' : 
+                         activity.type === 'course' ? '🎨' : 
+                         activity.type === 'xp' ? '⭐' : '🏆'}
+                      </span>
                       <div>
                         <p className="font-medium text-gray-900 dark:text-white">{activity.title}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-300">{activity.date}</p>

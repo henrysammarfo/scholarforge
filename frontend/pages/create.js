@@ -31,8 +31,10 @@ export default function Create() {
     xpReward: 50,
     maxParticipants: 100,
     duration: 30, // in minutes
+    quizType: 'community', // 'private' or 'community'
     isPublic: true,
     allowRetakes: false,
+    endDate: null, // for private quizzes with time limits
     questions: [
       {
         id: 1,
@@ -52,19 +54,21 @@ export default function Create() {
     { code: 'yo', name: 'Yoruba', flag: '🇳🇬' },
     { code: 'sw', name: 'Swahili', flag: '🇰🇪' },
     { code: 'fr', name: 'French', flag: '🇫🇷' },
-    { code: 'es', name: 'Spanish', flag: '🇲🇽' },
-    { code: 'hi', name: 'Hindi', flag: '🇮🇳' }
+    { code: 'es', name: 'Spanish', flag: '🇪🇸' },
+    { code: 'hi', name: 'Hindi', flag: '🇮🇳' },
+    { code: 'ar', name: 'Arabic', flag: '🇸🇦' },
+    { code: 'zh', name: 'Chinese', flag: '🇨🇳' },
+    { code: 'pt', name: 'Portuguese', flag: '🇵🇹' }
   ];
 
   const topics = [
     { id: 'culture', name: 'Cultural Studies', icon: '🏛️' },
-    { id: 'crypto', name: 'Crypto & Web3', icon: '₿' },
-    { id: 'food', name: 'African Cuisine', icon: '🍲' },
-    { id: 'sports', name: 'Sports & Fitness', icon: '⚽' },
-    { id: 'science', name: 'Science & Tech', icon: '🔬' },
+    { id: 'crypto', name: 'Cryptocurrency', icon: '₿' },
+    { id: 'food', name: 'African Cuisine', icon: '🍽️' },
+    { id: 'technology', name: 'Modern Technology', icon: '💻' },
     { id: 'business', name: 'Business & Entrepreneurship', icon: '💼' },
-    { id: 'history', name: 'African History', icon: '📚' },
-    { id: 'arts', name: 'Arts & Music', icon: '🎨' }
+    { id: 'health', name: 'Health & Wellness', icon: '🏥' },
+    { id: 'environment', name: 'Environmental Science', icon: '🌱' }
   ];
 
   const addQuestion = () => {
@@ -271,6 +275,18 @@ export default function Create() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quiz Type *</label>
+                  <select
+                    value={quizData.quizType}
+                    onChange={(e) => setQuizData({...quizData, quizType: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  >
+                    <option value="community">🌍 Community Quiz (Public)</option>
+                    <option value="private">🔒 Private Quiz (Personal)</option>
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Difficulty</label>
                   <select
                     value={quizData.difficulty}
@@ -282,7 +298,9 @@ export default function Create() {
                     <option value="advanced">Advanced</option>
                   </select>
                 </div>
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">XP Reward</label>
                   <input
@@ -293,6 +311,58 @@ export default function Create() {
                     max="200"
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   />
+                </div>
+
+                {quizData.quizType === 'private' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">End Date & Time</label>
+                    <input
+                      type="datetime-local"
+                      value={quizData.endDate || ''}
+                      onChange={(e) => setQuizData({...quizData, endDate: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                )}
+
+                {/* Time Limit for All Quizzes */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quiz Time Limit (minutes)</label>
+                  <input
+                    type="number"
+                    value={quizData.duration}
+                    onChange={(e) => setQuizData({...quizData, duration: parseInt(e.target.value)})}
+                    min="5"
+                    max="180"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+
+                {/* Maximum Participants */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Maximum Participants</label>
+                  <input
+                    type="number"
+                    value={quizData.maxParticipants}
+                    onChange={(e) => setQuizData({...quizData, maxParticipants: parseInt(e.target.value)})}
+                    min="1"
+                    max="1000"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+
+                {/* Allow Retakes */}
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="allowRetakes"
+                    checked={quizData.allowRetakes}
+                    onChange={(e) => setQuizData({...quizData, allowRetakes: e.target.checked})}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="allowRetakes" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Allow participants to retake quiz
+                  </label>
                 </div>
               </div>
             </motion.div>

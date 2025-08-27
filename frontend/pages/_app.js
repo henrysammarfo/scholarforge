@@ -17,7 +17,7 @@ export function useNavigation() {
 
 function buildChains() {
   const defaultChains = [mainnet, polygon, optimism, arbitrum, base, bsc, avalanche, celo, scroll, zkSync]
-  const idStr = process.env.NEXT_PUBLIC_EDUCHAIN_ID
+  const idStr = process.env.NEXT_PUBLIC_EDUCHAIN_CHAIN_ID || process.env.NEXT_PUBLIC_EDUCHAIN_ID
   const rpc = process.env.NEXT_PUBLIC_EDUCHAIN_RPC_URL
   
   console.log('🔍 Building chains with:', { idStr, rpc });
@@ -34,7 +34,7 @@ function buildChains() {
         public: { http: [rpc] }
       },
       blockExplorers: {
-        default: { name: 'EduChain Explorer', url: 'https://explorer.open-campus-codex.gelato.digital' }
+        default: { name: 'EduChain Explorer', url: process.env.NEXT_PUBLIC_EDUCHAIN_EXPLORER || 'https://explorer.open-campus-codex.gelato.digital' }
       },
       testnet: true
     }
@@ -143,7 +143,8 @@ export default function App({ Component, pageProps }) {
     navigateToDashboard: () => router.push('/dashboard'),
     navigateToProfile: () => router.push('/profile'),
     navigateToCommunity: () => router.push('/community'),
-    navigateToCreate: () => router.push('/create'),
+    navigateToCreate: () => router.push('/create-lesson'),
+    navigateToCreateQuiz: () => router.push('/create'),
     navigateHome: () => router.push('/')
   }
 

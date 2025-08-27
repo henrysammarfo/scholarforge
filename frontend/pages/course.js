@@ -3,8 +3,10 @@ import Head from 'next/head';
 import { motion } from 'framer-motion';
 import Header from '../components/Header';
 import { useNavigation } from './_app';
-import { courseContent } from '../data/courseContent';
+import { enhancedCourseContent } from '../data/enhancedCourseContent';
+import { enhancedLessonManager } from '../utils/enhancedLessonManager';
 import { mintSkillNFT, isCorrectNetwork, switchToEduChain } from '../utils/blockchain';
+import { walletProfileManager } from '../utils/walletProfileManager';
 import { useAccount, useNetwork } from 'wagmi';
 import { useWalletClient } from 'wagmi';
 import { 
@@ -42,11 +44,13 @@ export default function Course() {
 
   // Load course data based on selected topic and language
   useEffect(() => {
-    try {
-      const langCode = localStorage.getItem('sf_selected_language_code') || 'en';
-      const langName = localStorage.getItem('sf_selected_language_name') || 'English';
-      const topicId = localStorage.getItem('sf_selected_topic_id') || 'culture';
-      const topicName = localStorage.getItem('sf_selected_topic_name') || 'Cultural Studies';
+    // Only run on client side to prevent hydration mismatch
+    if (typeof window !== 'undefined') {
+      try {
+        const langCode = localStorage.getItem('sf_selected_language_code') || 'en';
+        const langName = localStorage.getItem('sf_selected_language_name') || 'English';
+        const topicId = localStorage.getItem('sf_selected_topic_id') || 'culture';
+        const topicName = localStorage.getItem('sf_selected_topic_name') || 'Cultural Studies';
       
       setCourseMeta({ 
         languageName: langName, 
@@ -56,44 +60,90 @@ export default function Course() {
       });
 
       // Get course content for this topic and language
-      const content = courseContent[topicId];
+      const content = enhancedCourseContent[topicId];
       console.log('Loading course for:', { topicId, langCode, hasContent: !!content });
+      
+      // Get user-created lessons for this topic and language
+      const userLessons = enhancedLessonManager.getLessonsByTopicAndLanguage(topicId, langCode);
+      console.log('User lessons found:', userLessons.length);
       
       if (content) {
         const languageContent = content[langCode] || content['en']; // Fallback to English
         console.log('Language content found:', !!languageContent);
         
         if (languageContent) {
+          // Merge predefined lessons with user-created lessons
+          const allLessons = [...languageContent.lessons];
+          
+          // Add user-created lessons
+          userLessons.forEach(userLesson => {
+            allLessons.push({
+              id: userLesson.id,
+              title: userLesson.title,
+              content: userLesson.content,
+              duration: userLesson.estimatedDuration || '10 minutes',
+              type: 'text',
+              isUserCreated: true,
+              creatorWallet: userLesson.creatorWallet,
+              creatorName: userLesson.creatorName
+            });
+          });
+          
           const newCourseData = {
             title: languageContent.title,
             language: langName,
             topic: topicName,
             description: languageContent.description,
-            totalLessons: languageContent.lessons.length,
-            estimatedTime: `${languageContent.lessons.length * 8} minutes`,
+            totalLessons: allLessons.length,
+            estimatedTime: `${allLessons.length * 8} minutes`,
             difficulty: "Beginner",
-            lessons: languageContent.lessons
+            lessons: allLessons
           };
-          console.log('Setting course data:', newCourseData.title);
+          console.log('Setting course data:', newCourseData.title, 'with', allLessons.length, 'lessons');
           setCourseData(newCourseData);
         } else {
-          console.warn('No language content found for:', langCode);
-          setCourseData({
-            title: "Language Not Available",
-            language: langName,
-            topic: topicName,
-            description: `Course content is not available in ${langName}. Please try English.`,
-            totalLessons: 1,
-            estimatedTime: "5 minutes",
-            difficulty: "Beginner",
-            lessons: [{
-              id: 1,
+          // No predefined content, but check for user-created lessons
+          if (userLessons.length > 0) {
+            const allLessons = userLessons.map(userLesson => ({
+              id: userLesson.id,
+              title: userLesson.title,
+              content: userLesson.content,
+              duration: userLesson.estimatedDuration || '10 minutes',
+              type: 'text',
+              isUserCreated: true,
+              creatorWallet: userLesson.creatorWallet,
+              creatorName: userLesson.creatorName
+            }));
+            
+            setCourseData({
+              title: `User-Created ${topicName} Lessons`,
+              language: langName,
+              topic: topicName,
+              description: `Custom lessons created by the community in ${langName}`,
+              totalLessons: allLessons.length,
+              estimatedTime: `${allLessons.length * 8} minutes`,
+              difficulty: "Beginner",
+              lessons: allLessons
+            });
+          } else {
+            console.warn('No language content found for:', langCode);
+            setCourseData({
               title: "Language Not Available",
-              content: `This course is not yet available in ${langName}. Please select English to continue.`,
-              duration: "1 minute",
-        type: "text"
-            }]
-          });
+              language: langName,
+              topic: topicName,
+              description: `Course content is not available in ${langName}. Please try English.`,
+              totalLessons: 1,
+              estimatedTime: "5 minutes",
+              difficulty: "Beginner",
+              lessons: [{
+                id: 1,
+                title: "Language Not Available",
+                content: `This course is not available in ${langName}. Please select English to continue.`,
+                duration: "1 minute",
+                type: "text"
+              }]
+            });
+          }
         }
       } else {
         console.warn('No content found for topic:', topicId);
@@ -117,7 +167,8 @@ export default function Course() {
     } catch (error) {
       console.error('Error loading course data:', error);
     }
-  }, []);
+  }
+}, []);
 
   useEffect(() => {
     if (courseData) {
@@ -141,6 +192,21 @@ export default function Course() {
   const markLessonComplete = (lessonId) => {
     if (!completedLessons.includes(lessonId)) {
       setCompletedLessons([...completedLessons, lessonId]);
+      
+      // Record lesson completion in wallet profile
+      if (address && courseData) {
+        try {
+          walletProfileManager.recordLessonCompletion(
+            address,
+            lessonId,
+            25, // XP for lesson completion
+            courseMeta.topicId,
+            courseMeta.languageCode
+          );
+        } catch (error) {
+          console.error('Error recording lesson completion:', error);
+        }
+      }
     }
   };
 
@@ -291,6 +357,120 @@ export default function Course() {
               <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{courseMeta.topicName || courseData.title}</h2>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">Language: {courseMeta.languageName || courseData.language}</p>
               
+              {/* Language Switcher */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Switch Language
+                </label>
+                <select
+                  value={courseMeta.languageCode || 'en'}
+                  onChange={(e) => {
+                    const newLangCode = e.target.value;
+                    const newLangName = e.target.options[e.target.selectedIndex].text;
+                    setCourseMeta(prev => ({
+                      ...prev,
+                      languageCode: newLangCode,
+                      languageName: newLangName
+                    }));
+                    localStorage.setItem('sf_selected_language_code', newLangCode);
+                    localStorage.setItem('sf_selected_language_name', newLangName);
+                    
+                    // Reload course content in new language
+                    const content = enhancedCourseContent[courseMeta.topicId];
+                    const userLessons = enhancedLessonManager.getLessonsByTopicAndLanguage(courseMeta.topicId, newLangCode);
+                    
+                    if (content && content[newLangCode]) {
+                      // Merge predefined lessons with user-created lessons
+                      const allLessons = [...content[newLangCode].lessons];
+                      
+                      // Add user-created lessons
+                      userLessons.forEach(userLesson => {
+                        allLessons.push({
+                          id: userLesson.id,
+                          title: userLesson.title,
+                          content: userLesson.content,
+                          duration: userLesson.estimatedDuration || '10 minutes',
+                          type: 'text',
+                          isUserCreated: true,
+                          creatorWallet: userLesson.creatorWallet,
+                          creatorName: userLesson.creatorName
+                        });
+                      });
+                      
+                      const newCourseData = {
+                        title: content[newLangCode].title,
+                        language: newLangName,
+                        topic: courseMeta.topicName,
+                        description: content[newLangCode].description,
+                        totalLessons: allLessons.length,
+                        estimatedTime: `${allLessons.length * 8} minutes`,
+                        difficulty: "Beginner",
+                        lessons: allLessons
+                      };
+                      
+                      setCourseData(newCourseData);
+                    } else if (userLessons.length > 0) {
+                      // No predefined content, but user-created lessons exist
+                      const allLessons = userLessons.map(userLesson => ({
+                        id: userLesson.id,
+                        title: userLesson.title,
+                        content: userLesson.content,
+                        duration: userLesson.estimatedDuration || '10 minutes',
+                        type: 'text',
+                        isUserCreated: true,
+                        creatorWallet: userLesson.creatorWallet,
+                        creatorName: userLesson.creatorName
+                      }));
+                      
+                      setCourseData({
+                        title: `User-Created ${courseMeta.topicName} Lessons`,
+                        language: newLangName,
+                        topic: courseMeta.topicName,
+                        description: `Custom lessons created by the community in ${newLangName}`,
+                        totalLessons: allLessons.length,
+                        estimatedTime: `${allLessons.length * 8} minutes`,
+                        difficulty: "Beginner",
+                        lessons: allLessons
+                      });
+                    } else {
+                      // No content available in this language
+                      setCourseData({
+                        title: `No Content Available in ${newLangName}`,
+                        language: newLangName,
+                        topic: courseMeta.topicName,
+                        description: `Content is not yet available in ${newLangName}. Please try another language.`,
+                        totalLessons: 1,
+                        estimatedTime: "5 minutes",
+                        difficulty: "Beginner",
+                        lessons: [{
+                          id: 1,
+                          title: "Language Not Available",
+                          content: `This course is not yet available in ${newLangName}. Please select another language or check back later.`,
+                          duration: "1 minute",
+                          type: "text"
+                        }]
+                      });
+                    }
+                    
+                    // Reset lesson progress for new language
+                    setCurrentLesson(0);
+                    setCompletedLessons([]);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
+                >
+                  <option value="en">🇺🇸 English</option>
+                  <option value="tw">🇬🇭 Twi</option>
+                  <option value="yo">🇳🇬 Yoruba</option>
+                  <option value="sw">🇰🇪 Swahili</option>
+                  <option value="fr">🇫🇷 French</option>
+                  <option value="es">🇪🇸 Spanish</option>
+                  <option value="hi">🇮🇳 Hindi</option>
+                  <option value="ar">🇸🇦 Arabic</option>
+                  <option value="zh">🇨🇳 Chinese</option>
+                  <option value="pt">🇵🇹 Portuguese</option>
+                </select>
+              </div>
+              
               {/* Course Info */}
               <div className="space-y-3 mb-6">
                 <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
@@ -337,12 +517,24 @@ export default function Course() {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">{lesson.title}</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium">{lesson.title}</span>
+                        {lesson.isUserCreated && (
+                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                            Community
+                          </span>
+                        )}
+                      </div>
                       {completedLessons.includes(lesson.id) && (
                         <CheckCircleIcon className="h-4 w-4 text-success-600" />
                       )}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{lesson.duration}</div>
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <span>{lesson.duration}</span>
+                      {lesson.isUserCreated && lesson.creatorName && (
+                        <span className="text-blue-600">by {lesson.creatorName}</span>
+                      )}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -367,12 +559,23 @@ export default function Course() {
                     <ClockIcon className="h-4 w-4 mr-1" />
                     {currentLessonData.duration}
                   </div>
-                  {completedLessons.includes(currentLessonData.id) && (
-                    <div className="flex items-center text-success-600">
-                      <CheckCircleIcon className="h-5 w-5 mr-1" />
-                      <span className="text-sm">Completed</span>
-                    </div>
-                  )}
+                  <div className="flex items-center space-x-3">
+                    {/* Translation Toggle */}
+                    {courseMeta.languageCode !== 'en' && (
+                      <button
+                        onClick={() => window.open(`https://translate.google.com/?sl=${courseMeta.languageCode}&tl=en&text=${encodeURIComponent(currentLessonData.content)}`, '_blank')}
+                        className="flex items-center px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+                      >
+                        🌐 Translate to English
+                      </button>
+                    )}
+                    {completedLessons.includes(currentLessonData.id) && (
+                      <div className="flex items-center text-success-600">
+                        <CheckCircleIcon className="h-5 w-5 mr-1" />
+                        <span className="text-sm">Completed</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
                   {currentLessonData.title}
